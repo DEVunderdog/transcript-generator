@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -74,7 +75,9 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 		return
 	}
 
-	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(newFileName)
+	objectKey := fmt.Sprintf("%d/%s", payload.UserID, newFileName)
+
+	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(objectKey)
 
 	writer := object.NewWriter(ctx)
 	if _, err := io.Copy(writer, src); err != nil {
@@ -95,7 +98,7 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 			UserID: int32(payload.UserID),
 			ObjectKey: pgtype.Text{
 				Valid:  true,
-				String: newFileName,
+				String: objectKey,
 			},
 			UpdatedAt:  newFile.UpdatedAt,
 			FileStatus: database.Failed,
@@ -234,7 +237,7 @@ func (server *Server) deleteFile(ctx *gin.Context) {
 			ID:         lockFile.ID,
 			UserID:     int32(payload.UserID),
 			LockStatus: database.Unlocked,
-			Status:     database.Failed,
+			Status:     database.Success,
 		})
 
 		if rollbackErr != nil {
