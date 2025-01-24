@@ -11,15 +11,24 @@ insert into file_registry (
 -- name: GetFileByID :one
 select upload_status, lock_status, updated_at
 from file_registry
-where id = sqlc.arg(id)
+where id = sqlc.arg(id) and user_id = sqlc.arg(user_id)
 for update;
 
 -- name: GetFileByName :one
 select * from file_registry
 where
-    file_name = sqlc.arg(file_name) 
+    file_name = sqlc.arg(file_name)
     and user_id = sqlc.arg(user_id)
 for update;
+
+-- name: ListAllFiles :many
+select id, file_name from file_registry
+where
+    user_id = sqlc.arg(user_id)
+    and
+    upload_status = sqlc.arg(upload_status)
+    and
+    lock_status = sqlc.arg(lock_status);
 
 -- name: UpdateFileMetadata :one
 update file_registry
@@ -28,7 +37,7 @@ set
     upload_status = sqlc.arg(upload_status),
     lock_status = sqlc.arg(lock_status),
     updated_at = current_timestamp
-where id = sqlc.arg(id)
+where id = sqlc.arg(id) and user_id = sqlc.arg(user_id)
 returning *;
 
 -- name: UpdateFileName :one
@@ -36,17 +45,18 @@ update file_registry
 set
     file_name = sqlc.arg(new_file_name),
     updated_at = current_timestamp
-where id = sqlc.arg(id)
+where id = sqlc.arg(id) and user_id = sqlc.arg(user_id)
 returning *;
 
--- name: LockFile :one
+-- name: UnlockAndLockFile :one
 update file_registry
 set
+    upload_status = sqlc.arg(status),
     lock_status = sqlc.arg(lock_status),
     updated_at = current_timestamp
-where id = sqlc.arg(id)
+where id = sqlc.arg(id) and user_id = sqlc.arg(user_id)
 returning *;
 
 -- name: DeleteFile :exec
 delete from file_registry
-where id = sqlc.arg(id);
+where id = sqlc.arg(id) and user_id = sqlc.arg(user_id);

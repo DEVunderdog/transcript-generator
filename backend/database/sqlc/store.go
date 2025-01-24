@@ -13,7 +13,7 @@ type Store interface {
 	UpdateMetadataFileTx(ctx context.Context, arg UpdateFileMetadataTxParams) (*FileRegistry, error)
 	UpdateFileNameTx(ctx context.Context, userID int32, oldFilename, newFilename string) (*FileRegistry, error)
 	LockFileTx(ctx context.Context, userID int32, filename string) (*FileRegistry, error)
-	DeleteFileTx(ctx context.Context, id int32, updatedAt pgtype.Timestamptz) error
+	DeleteFileTx(ctx context.Context, userId, id int32, updatedAt pgtype.Timestamptz) error
 }
 
 type SQLStore struct {

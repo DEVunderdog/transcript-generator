@@ -142,9 +142,15 @@ func (server *Server) setupRouter() error {
 	router.GET("/server/health", server.serverHealthCheck)
 	router.POST("/server/api/register", server.generateAPIKey)
 
-	authRoutes := router.Group("/server/auth").Use(middleware.Authenticate(*server.config, server.store))
+	authRoutes := router.Group("/server/auth")
+	authRoutes.Use(middleware.Authenticate(*server.config, server.store))
 	authRoutes.DELETE("/api/delete", server.deleteAPIKey)
-	authRoutes.POST("/upload", server.uploadFileToBucket)
+
+	fileRoutes := authRoutes.Group("/files")
+	fileRoutes.POST("/upload", server.uploadFileToBucket)
+	fileRoutes.POST("/update", server.updateFile)
+	fileRoutes.GET("/list", server.listAllFiles)
+	fileRoutes.DELETE("/delete/:filename", server.deleteFile)
 
 	server.router = router
 

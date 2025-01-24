@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
+	"path/filepath"
 
 	"github.com/DEVunderdog/transcript-generator-backend/constants"
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
@@ -12,117 +12,254 @@ import (
 	"github.com/DEVunderdog/transcript-generator-backend/token"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const maxFileSize = 50 * 1024 * 1024
-
-type uploadFileRequest struct {
-	Filename string `json:"filename" binding:"required"`
-	Filepath string `json:"filepath" binding:"required"`
-}
+const maxFileSize = 1 * 1024 * 1024
 
 type uploadedFileResponse struct {
-	ID       int32  `json:"id"`
-	FileName string `json:"filenmae"`
+	ID       int32  `json:"id" binding:"true"`
+	FileName string `json:"filenmae" binding:"true"`
+}
+
+type updateFileRequest struct {
+	NewFileName string `json:"new_file_name" binding:"required"`
+	FileID      int32  `json:"file_id" binding:"required"`
 }
 
 func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 
-	var req uploadFileRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "please provide valid request body", err.Error())
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		server.baseLogger.Error().Err(err).Msg("no file received")
+		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "No file received", err.Error())
+		return
+	}
+
+	if file.Size > maxFileSize {
+		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "file size exceeded than 50 mb", nil)
 		return
 	}
 
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
 
+	extension := filepath.Ext(file.Filename)
+	newFileName := uuid.New().String() + extension
+
+	src, err := file.Open()
+	if err != nil {
+		server.baseLogger.Error().Err(err).Msg("error reading uploaded file")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error opening uploaded file", nil)
+		return
+	}
+	defer src.Close()
+
 	newFile, err := server.store.CreateEmptyFileTx(ctx, database.CreateEmptyFileParams{
-		UserID:   int32(payload.UserID),
-		FileName: req.Filename,
+		UserID:       int32(payload.UserID),
+		FileName:     file.Filename,
+		LockStatus:   database.Locked,
+		UploadStatus: database.Pending,
 	})
 
 	if err != nil {
 		if errors.Is(err, custom_errors.ErrDuplicateData) {
-			server.baseLogger.Logger.Error().Err(err).Msg("file with that name already exists")
+			server.baseLogger.Error().Err(err).Msg("file with that name already exists")
 			server.enhanceHTTPResponse(ctx, http.StatusConflict, "file with that name already exits", nil)
 			return
 		}
 
-		server.baseLogger.Logger.Error().Err(err).Msg("error while creating empty file in registry")
+		server.baseLogger.Error().Err(err).Msg("error while creating empty file in registry")
 		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while creating file in registry", nil)
 		return
 	}
 
-	fileInfo, err := os.Stat(req.Filepath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			server.baseLogger.Logger.Error().Err(err).Msg("file not found on requested path")
-			server.enhanceHTTPResponse(ctx, http.StatusNotFound, "file not found on requested path", nil)
-			return
-		}
-		server.baseLogger.Logger.Error().Err(err).Msg("error while reading file from provided path")
-		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while reading file from provided path", nil)
-		return
-	}
-
-	if fileInfo.Size() > maxFileSize {
-		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "file size exceeded then 50 mb", nil)
-		return
-	}
-
-	f, err := os.Open(req.Filepath)
-	if err != nil {
-		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while opening local file for uploading", err.Error())
-		return
-	}
-	defer f.Close()
-
-	objectName := uuid.NewString() + "-" + req.Filename
-	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(objectName)
+	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(newFileName)
 
 	writer := object.NewWriter(ctx)
-
-	if _, err := io.Copy(writer, f); err != nil {
-		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "failed to copy file to storage", err.Error())
+	if _, err := io.Copy(writer, src); err != nil {
+		rollbackErr := server.store.DeleteFileTx(ctx, int32(payload.UserID), newFile.ID, newFile.UpdatedAt)
+		if rollbackErr != nil {
+			server.baseLogger.Error().Err(rollbackErr).Msgf("error while rollbacking file by deleting it because writer got failed: %s", err.Error())
+			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while uploading the file, try later and sync up", nil)
+			return
+		}
+		server.baseLogger.Error().Err(err).Msg("error while copying source of file to cloud storage bucket writer")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while copying source of file to cloud storage bucket writer", nil)
 		return
 	}
 
 	if err := writer.Close(); err != nil {
-		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "failed to close writer which is used to writing storage", err.Error())
+		_, rollbackErr := server.store.UpdateMetadataFileTx(ctx, database.UpdateFileMetadataTxParams{
+			ID:     newFile.ID,
+			UserID: int32(payload.UserID),
+			ObjectKey: pgtype.Text{
+				Valid:  true,
+				String: newFileName,
+			},
+			UpdatedAt:  newFile.UpdatedAt,
+			FileStatus: database.Failed,
+		})
+		if rollbackErr != nil {
+			server.baseLogger.Error().Err(rollbackErr).Msgf("error while rollbacking file by updating its status to failed because writer got error whle closing: %s", err.Error())
+			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while uploading the file, try later and sync up", nil)
+			return
+		}
+		server.baseLogger.Error().Err(err).Msg("error while closing the cloud storage bucket writer")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while closing cloud storage bucket writer", nil)
 		return
 	}
 
-	file, err := server.store.UpdateMetadataFileTx(ctx, database.UpdateFileMetadataTxParams{
+	updatedFile, err := server.store.UpdateMetadataFileTx(ctx, database.UpdateFileMetadataTxParams{
 		ID: newFile.ID,
 		ObjectKey: pgtype.Text{
 			Valid:  true,
-			String: objectName,
+			String: newFileName,
 		},
-		UpdatedAt: newFile.UpdatedAt,
+		UpdatedAt:  newFile.UpdatedAt,
+		UserID:     int32(payload.UserID),
+		FileStatus: database.Success,
 	})
 
 	if err != nil {
 		if errors.Is(err, custom_errors.ErrNoRecordFound) {
-			server.baseLogger.Logger.Error().Err(err).Msg("cannot find the empty file which was created earlier")
+			server.baseLogger.Error().Err(err).Msg("cannot find the empty file which was created earlier")
 			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while creating file in registry, please try later", nil)
 			return
 		}
 
 		if errors.Is(err, custom_errors.ErrResourceConflict) {
-			server.baseLogger.Logger.Error().Err(err).Msg("resource concurrently got tampered")
+			server.baseLogger.Error().Err(err).Msg("resource concurrently got tampered")
 			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "resource conflicts, please try again later or maybe sync up", nil)
 			return
 		}
 
-		server.baseLogger.Logger.Error().Err(err).Msg("error while updating metadata of empty file")
-		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while creating file in registry", nil)
+		server.baseLogger.Error().Err(err).Msg("error while updating metadata of empty file")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while creating file in registry, sync up or try later", nil)
 		return
 
 	}
 
 	server.enhanceHTTPResponse(ctx, http.StatusCreated, "file uploaded successfully", uploadedFileResponse{
+		ID:       updatedFile.ID,
+		FileName: updatedFile.FileName,
+	})
+}
+
+func (server *Server) listAllFiles(ctx *gin.Context) {
+	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
+
+	files, err := server.store.ListAllFiles(ctx, database.ListAllFilesParams{
+		UserID:       int32(payload.UserID),
+		UploadStatus: database.Success,
+		LockStatus:   database.Unlocked,
+	})
+
+	if err != nil {
+		server.baseLogger.Error().Err(err).Msg("error while listing all files")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while listing all files", nil)
+		return
+	}
+
+	server.enhanceHTTPResponse(ctx, http.StatusOK, "files fetched successfully", files)
+}
+
+func (server *Server) updateFile(ctx *gin.Context) {
+	var req updateFileRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		server.baseLogger.Error().Err(err).Msg("bad request body")
+		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "bad request body", err.Error())
+		return
+	}
+
+	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
+
+	file, err := server.store.UpdateFileName(ctx, database.UpdateFileNameParams{
+		NewFileName: req.NewFileName,
+		ID:          req.FileID,
+		UserID:      int32(payload.UserID),
+	})
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			server.baseLogger.Error().Err(err).Msg("cannot find rows")
+			server.enhanceHTTPResponse(ctx, http.StatusNotFound, "cannot find the files with provided name", nil)
+			return
+		}
+
+		server.baseLogger.Error().Err(err).Msg("error while updating files")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while updating file", nil)
+		return
+	}
+
+	server.enhanceHTTPResponse(ctx, http.StatusOK, "file updated successfully", uploadedFileResponse{
 		ID:       file.ID,
 		FileName: file.FileName,
 	})
+
+}
+
+func (server *Server) deleteFile(ctx *gin.Context) {
+	fileName := ctx.Param("filename")
+	if fileName == "" {
+		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "please provide file name to delete", nil)
+		return
+	}
+
+	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
+
+	lockFile, err := server.store.LockFileTx(ctx, int32(payload.UserID), fileName)
+
+	if err != nil {
+		if errors.Is(err, custom_errors.ErrNoRecordFound) {
+			server.baseLogger.Error().Err(err).Msg("cannot find the file with provide name")
+			server.enhanceHTTPResponse(ctx, http.StatusNotFound, "cannot find file with provided name", nil)
+			return
+		}
+
+		if errors.Is(err, custom_errors.ErrResourceLocked) {
+			server.baseLogger.Error().Err(err).Msg("resource locked")
+			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "resource locked, maybe try later", nil)
+			return
+		}
+
+		server.baseLogger.Error().Err(err).Msg("error while locking the file")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while deleting the file, please sync up or try later", nil)
+		return
+	}
+
+	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(lockFile.ObjectKey.String)
+	if err := object.Delete(ctx); err != nil {
+		_, rollbackErr := server.store.UnlockAndLockFile(ctx, database.UnlockAndLockFileParams{
+			ID:         lockFile.ID,
+			UserID:     int32(payload.UserID),
+			LockStatus: database.Unlocked,
+			Status:     database.Failed,
+		})
+
+		if rollbackErr != nil {
+			server.baseLogger.Error().Err(rollbackErr).Msgf("error while rollbacking by unlocking the file due failed deletion in cloud storage bucked: %s", err.Error())
+			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while deleting file, please try later", nil)
+			return
+		}
+
+		server.baseLogger.Error().Err(err).Msg("error while deleting object from bucket")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while deleting file, please try again", nil)
+		return
+	}
+
+	err = server.store.DeleteFileTx(ctx, int32(payload.UserID), lockFile.ID, lockFile.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, custom_errors.ErrResourceConflict) {
+			server.baseLogger.Error().Err(err).Msg("conflicting resource")
+			server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "conflicting resource, please try later or sync up", nil)
+			return
+		}
+
+		server.baseLogger.Error().Err(err).Msg("error while deleting files")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while deleting file please try later", nil)
+		return
+	}
+
+	server.enhanceHTTPResponse(ctx, http.StatusOK, "file deleted successfully", nil)
 }

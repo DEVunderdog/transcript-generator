@@ -10,9 +10,11 @@ import (
 )
 
 type UpdateFileMetadataTxParams struct {
-	ID           int32
-	ObjectKey    pgtype.Text
-	UpdatedAt    pgtype.Timestamptz
+	ID         int32
+	UserID     int32
+	ObjectKey  pgtype.Text
+	UpdatedAt  pgtype.Timestamptz
+	FileStatus string
 }
 
 func (store *SQLStore) CreateEmptyFileTx(ctx context.Context, arg CreateEmptyFileParams) (*FileRegistry, error) {
@@ -56,7 +58,10 @@ func (store *SQLStore) UpdateMetadataFileTx(ctx context.Context, arg UpdateFileM
 
 		var err error
 
-		fileData, err := q.GetFileByID(ctx, arg.ID)
+		fileData, err := q.GetFileByID(ctx, GetFileByIDParams{
+			ID:     arg.ID,
+			UserID: arg.UserID,
+		})
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return custom_errors.ErrNoRecordFound
@@ -64,15 +69,16 @@ func (store *SQLStore) UpdateMetadataFileTx(ctx context.Context, arg UpdateFileM
 			return err
 		}
 
-		if fileData.LockStatus || fileData.UpdatedAt != arg.UpdatedAt || fileData.UploadStatus != Pending {
+		if !fileData.LockStatus || fileData.UpdatedAt != arg.UpdatedAt || fileData.UploadStatus != Pending {
 			return custom_errors.ErrResourceConflict
 		}
 
 		file, err = q.UpdateFileMetadata(ctx, UpdateFileMetadataParams{
 			ObjectKey:    arg.ObjectKey,
-			UploadStatus: Success,
+			UploadStatus: arg.FileStatus,
 			LockStatus:   Unlocked,
 			ID:           arg.ID,
+			UserID:       arg.UserID,
 		})
 
 		if err != nil {
@@ -167,9 +173,11 @@ func (store *SQLStore) LockFileTx(ctx context.Context, userID int32, filename st
 			return custom_errors.ErrUploadIssue
 		}
 
-		file, err = q.LockFile(ctx, LockFileParams{
+		file, err = q.UnlockAndLockFile(ctx, UnlockAndLockFileParams{
 			LockStatus: Locked,
 			ID:         fileData.ID,
+			UserID:     userID,
+			Status:     Pending,
 		})
 
 		if err != nil {
@@ -186,12 +194,15 @@ func (store *SQLStore) LockFileTx(ctx context.Context, userID int32, filename st
 	return &file, nil
 }
 
-func (store *SQLStore) DeleteFileTx(ctx context.Context, id int32, updatedAt pgtype.Timestamptz) error {
+func (store *SQLStore) DeleteFileTx(ctx context.Context, userId, id int32, updatedAt pgtype.Timestamptz) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		fileData, err := q.GetFileByID(ctx, id)
+		fileData, err := q.GetFileByID(ctx, GetFileByIDParams{
+			ID:     id,
+			UserID: userId,
+		})
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
 				return custom_errors.ErrNoRecordFound
@@ -203,11 +214,14 @@ func (store *SQLStore) DeleteFileTx(ctx context.Context, id int32, updatedAt pgt
 			return custom_errors.ErrResourceConflict
 		}
 
-		if fileData.UploadStatus != Success {
+		if fileData.UploadStatus != Pending {
 			return custom_errors.ErrUploadIssue
 		}
 
-		err = q.DeleteFile(ctx, id)
+		err = q.DeleteFile(ctx, DeleteFileParams{
+			ID:     id,
+			UserID: userId,
+		})
 		if err != nil {
 			return err
 		}

@@ -36,12 +36,12 @@ func main() {
 
 	config, err := utils.LoadConfig("../.env/backend.env")
 	if err != nil {
-		baseLogger.Logger.Fatal().Err(err).Msg("error loading configuration")
+		baseLogger.Fatal().Err(err).Msg("error loading configuration")
 	}
 
 	connPool, err := pgxpool.New(ctx, config.DBSource)
 	if err != nil {
-		baseLogger.Logger.Fatal().Err(err).Msg("error creating database connection pool")
+		baseLogger.Fatal().Err(err).Msg("error creating database connection pool")
 	}
 
 	store := database.NewStore(connPool)
@@ -52,14 +52,14 @@ func main() {
 
 	server, err := server.NewServer(ctx, store, config, baseLogger)
 	if err != nil {
-		baseLogger.Logger.Fatal().Err(err).Msg("error creating server")
+		baseLogger.Fatal().Err(err).Msg("error creating server")
 	}
 
 	srv := server.Start()
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			baseLogger.Logger.Fatal().Err(err).Msg("error in server while listening")
+			baseLogger.Fatal().Err(err).Msg("error in server while listening")
 		}
 	}()
 
@@ -68,12 +68,12 @@ func main() {
 	stop()
 
 	// if err := srv.Shutdown(ctx); err != nil {
-	// 	baseLogger.Logger.Fatal().Msg("server shutting down")
+	// 	baseLogger.Fatal().Msg("server shutting down")
 	// }
 
 	if err := server.ServerShutdown(ctx, srv); err != nil {
-		baseLogger.Logger.Fatal().Err(err).Msg("error while server is shutting down")
+		baseLogger.Fatal().Err(err).Msg("error while server is shutting down")
 	}
 
-	baseLogger.Logger.Info().Msg("Bye :)")
+	baseLogger.Info().Msg("Bye :)")
 }
