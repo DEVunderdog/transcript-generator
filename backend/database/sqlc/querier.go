@@ -15,13 +15,14 @@ type Querier interface {
 	CreateEncryptionKeys(ctx context.Context, arg CreateEncryptionKeysParams) (EncryptionKey, error)
 	CreateUsers(ctx context.Context, email string) (User, error)
 	DeleteAPIKey(ctx context.Context, credential []byte) error
-	DeleteFile(ctx context.Context, arg DeleteFileParams) error
+	DeleteFiles(ctx context.Context, arg DeleteFilesParams) error
 	GetAPIKey(ctx context.Context, credential []byte) (GetAPIKeyRow, error)
 	GetActiveKeyBasedOnPurpose(ctx context.Context, purpose string) (GetActiveKeyBasedOnPurposeRow, error)
 	GetFileByID(ctx context.Context, arg GetFileByIDParams) (GetFileByIDRow, error)
 	GetFileByName(ctx context.Context, arg GetFileByNameParams) (FileRegistry, error)
 	GetUsersID(ctx context.Context, email string) (int32, error)
 	ListAllFiles(ctx context.Context, arg ListAllFilesParams) ([]ListAllFilesRow, error)
+	ListConflictingFiles(ctx context.Context, arg ListConflictingFilesParams) ([]ListConflictingFilesRow, error)
 	UnlockAndLockFile(ctx context.Context, arg UnlockAndLockFileParams) (FileRegistry, error)
 	UpdateFileMetadata(ctx context.Context, arg UpdateFileMetadataParams) (FileRegistry, error)
 	UpdateFileName(ctx context.Context, arg UpdateFileNameParams) (FileRegistry, error)

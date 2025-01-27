@@ -50,7 +50,7 @@ func Authenticate(config utils.Config, store database.Store) gin.HandlerFunc {
 		apiDetails, err := store.GetAPIKey(ctx, []byte(apiKey))
 		if err != nil {
 			log.Printf("Error: %s", err.Error())
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "error fetching signature"})
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "please provide valid API Key"})
 			ctx.Abort()
 			return
 		}

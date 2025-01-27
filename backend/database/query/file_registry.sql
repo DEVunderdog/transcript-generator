@@ -30,6 +30,16 @@ where
     and
     lock_status = sqlc.arg(lock_status);
 
+-- name: ListConflictingFiles :many
+select id, object_key from file_registry
+where ((lock_status = sqlc.arg(first_lock_condition) AND upload_status = sqlc.arg(first_upload_status)) OR
+    (lock_status = sqlc.arg(second_lock_condition) AND upload_status = sqlc.arg(second_upload_status)) OR
+    (lock_status = sqlc.arg(third_lock_condition) AND upload_status = sqlc.arg(third_upload_status)) OR
+    (lock_status = sqlc.arg(fourth_lock_condition) AND upload_status = sqlc.arg(fourth_upload_status)) OR
+    (lock_status = sqlc.arg(fifth_lock_condition) AND upload_status = sqlc.arg(fifth_upload_status)))
+    AND
+    user_id = sqlc.arg(user_id);
+
 -- name: UpdateFileMetadata :one
 update file_registry
 set
@@ -57,6 +67,9 @@ set
 where id = sqlc.arg(id) and user_id = sqlc.arg(user_id)
 returning *;
 
--- name: DeleteFile :exec
+-- name: DeleteFiles :exec
 delete from file_registry
-where id = sqlc.arg(id) and user_id = sqlc.arg(user_id);
+where
+    user_id = sqlc.arg(user_id)
+    and
+    id = sqlc.arg(id);

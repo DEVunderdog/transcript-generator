@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/DEVunderdog/transcript-generator-backend/constants"
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
@@ -47,6 +48,7 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 
 	extension := filepath.Ext(file.Filename)
 	newFileName := uuid.New().String() + extension
+	objectKey := fmt.Sprintf("%d/%s", payload.UserID, newFileName)
 
 	src, err := file.Open()
 	if err != nil {
@@ -74,8 +76,6 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while creating file in registry", nil)
 		return
 	}
-
-	objectKey := fmt.Sprintf("%d/%s", payload.UserID, newFileName)
 
 	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(objectKey)
 
@@ -117,7 +117,7 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 		ID: newFile.ID,
 		ObjectKey: pgtype.Text{
 			Valid:  true,
-			String: newFileName,
+			String: objectKey,
 		},
 		UpdatedAt:  newFile.UpdatedAt,
 		UserID:     int32(payload.UserID),
@@ -210,6 +210,7 @@ func (server *Server) deleteFile(ctx *gin.Context) {
 	}
 
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
+	userID := strconv.Itoa(int(payload.UserID))
 
 	lockFile, err := server.store.LockFileTx(ctx, int32(payload.UserID), fileName)
 
@@ -231,7 +232,9 @@ func (server *Server) deleteFile(ctx *gin.Context) {
 		return
 	}
 
-	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(lockFile.ObjectKey.String)
+	objectKey := userID + "/" + lockFile.ObjectKey.String
+
+	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(objectKey)
 	if err := object.Delete(ctx); err != nil {
 		_, rollbackErr := server.store.UnlockAndLockFile(ctx, database.UnlockAndLockFileParams{
 			ID:         lockFile.ID,

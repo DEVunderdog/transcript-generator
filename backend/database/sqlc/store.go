@@ -13,7 +13,9 @@ type Store interface {
 	UpdateMetadataFileTx(ctx context.Context, arg UpdateFileMetadataTxParams) (*FileRegistry, error)
 	UpdateFileNameTx(ctx context.Context, userID int32, oldFilename, newFilename string) (*FileRegistry, error)
 	LockFileTx(ctx context.Context, userID int32, filename string) (*FileRegistry, error)
+	UnlockMultipleFilesTx(ctx context.Context, userID int32, ids []int32) error
 	DeleteFileTx(ctx context.Context, userId, id int32, updatedAt pgtype.Timestamptz) error
+	DeleteMultipleFilesTx(ctx context.Context, userID int32, ids []int32) error
 }
 
 type SQLStore struct {

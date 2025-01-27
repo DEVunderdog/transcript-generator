@@ -151,6 +151,7 @@ func (server *Server) setupRouter() error {
 	fileRoutes.POST("/update", server.updateFile)
 	fileRoutes.GET("/list", server.listAllFiles)
 	fileRoutes.DELETE("/delete/:filename", server.deleteFile)
+	fileRoutes.GET("/sync", server.sync)
 
 	server.router = router
 

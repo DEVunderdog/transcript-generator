@@ -39,7 +39,7 @@ alter table "api_keys" add constraint "fk_user_api_keys" foreign key ("user_id")
 
 alter table "file_registry" add constraint "fk_user_file_registry" foreign key ("user_id") references "users" ("id") on update cascade on delete restrict;
 
-create unique index idx_unique_filename on "file_registry" ("file_name");
+create unique index idx_unique_filename on "file_registry" ("file_name", "user_id");
 
 create index idx_email on "users" ("email");
 
@@ -51,4 +51,4 @@ create index idx_file_registry_user_id on "file_registry" ("user_id");
 
 create index idx_api_keys_user_id on "api_keys" ("user_id");
 
-create index idx_file_registry on "file_registry" ("lock_status");
+create index idx_file_registry on "file_registry" ("lock_status", "upload_status");

@@ -50,18 +50,21 @@ func (q *Queries) CreateEmptyFile(ctx context.Context, arg CreateEmptyFileParams
 	return i, err
 }
 
-const deleteFile = `-- name: DeleteFile :exec
+const deleteFiles = `-- name: DeleteFiles :exec
 delete from file_registry
-where id = $1 and user_id = $2
+where
+    user_id = $1
+    and
+    id = $2
 `
 
-type DeleteFileParams struct {
-	ID     int32 `json:"id"`
+type DeleteFilesParams struct {
 	UserID int32 `json:"user_id"`
+	ID     int32 `json:"id"`
 }
 
-func (q *Queries) DeleteFile(ctx context.Context, arg DeleteFileParams) error {
-	_, err := q.db.Exec(ctx, deleteFile, arg.ID, arg.UserID)
+func (q *Queries) DeleteFiles(ctx context.Context, arg DeleteFilesParams) error {
+	_, err := q.db.Exec(ctx, deleteFiles, arg.UserID, arg.ID)
 	return err
 }
 
@@ -150,6 +153,68 @@ func (q *Queries) ListAllFiles(ctx context.Context, arg ListAllFilesParams) ([]L
 	for rows.Next() {
 		var i ListAllFilesRow
 		if err := rows.Scan(&i.ID, &i.FileName); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listConflictingFiles = `-- name: ListConflictingFiles :many
+select id, object_key from file_registry
+where ((lock_status = $1 AND upload_status = $2) OR
+    (lock_status = $3 AND upload_status = $4) OR
+    (lock_status = $5 AND upload_status = $6) OR
+    (lock_status = $7 AND upload_status = $8) OR
+    (lock_status = $9 AND upload_status = $10))
+    AND
+    user_id = $11
+`
+
+type ListConflictingFilesParams struct {
+	FirstLockCondition  bool   `json:"first_lock_condition"`
+	FirstUploadStatus   string `json:"first_upload_status"`
+	SecondLockCondition bool   `json:"second_lock_condition"`
+	SecondUploadStatus  string `json:"second_upload_status"`
+	ThirdLockCondition  bool   `json:"third_lock_condition"`
+	ThirdUploadStatus   string `json:"third_upload_status"`
+	FourthLockCondition bool   `json:"fourth_lock_condition"`
+	FourthUploadStatus  string `json:"fourth_upload_status"`
+	FifthLockCondition  bool   `json:"fifth_lock_condition"`
+	FifthUploadStatus   string `json:"fifth_upload_status"`
+	UserID              int32  `json:"user_id"`
+}
+
+type ListConflictingFilesRow struct {
+	ID        int32       `json:"id"`
+	ObjectKey pgtype.Text `json:"object_key"`
+}
+
+func (q *Queries) ListConflictingFiles(ctx context.Context, arg ListConflictingFilesParams) ([]ListConflictingFilesRow, error) {
+	rows, err := q.db.Query(ctx, listConflictingFiles,
+		arg.FirstLockCondition,
+		arg.FirstUploadStatus,
+		arg.SecondLockCondition,
+		arg.SecondUploadStatus,
+		arg.ThirdLockCondition,
+		arg.ThirdUploadStatus,
+		arg.FourthLockCondition,
+		arg.FourthUploadStatus,
+		arg.FifthLockCondition,
+		arg.FifthUploadStatus,
+		arg.UserID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListConflictingFilesRow{}
+	for rows.Next() {
+		var i ListConflictingFilesRow
+		if err := rows.Scan(&i.ID, &i.ObjectKey); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

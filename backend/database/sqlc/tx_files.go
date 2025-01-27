@@ -194,6 +194,28 @@ func (store *SQLStore) LockFileTx(ctx context.Context, userID int32, filename st
 	return &file, nil
 }
 
+func (store *SQLStore) UnlockMultipleFilesTx(ctx context.Context, userID int32, ids []int32) error {
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		for _, item := range ids {
+			_, err := store.UnlockAndLockFile(ctx, UnlockAndLockFileParams{
+				Status:     Success,
+				LockStatus: Unlocked,
+				ID:         item,
+				UserID:     userID,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return err
+	})
+
+	return err
+}
+
 func (store *SQLStore) DeleteFileTx(ctx context.Context, userId, id int32, updatedAt pgtype.Timestamptz) error {
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -218,7 +240,7 @@ func (store *SQLStore) DeleteFileTx(ctx context.Context, userId, id int32, updat
 			return custom_errors.ErrUploadIssue
 		}
 
-		err = q.DeleteFile(ctx, DeleteFileParams{
+		err = q.DeleteFiles(ctx, DeleteFilesParams{
 			ID:     id,
 			UserID: userId,
 		})
@@ -234,4 +256,24 @@ func (store *SQLStore) DeleteFileTx(ctx context.Context, userId, id int32, updat
 	}
 
 	return nil
+}
+
+func (store *SQLStore) DeleteMultipleFilesTx(ctx context.Context, userID int32, ids []int32) error {
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		for _, item := range ids {
+			err = q.DeleteFiles(ctx, DeleteFilesParams{
+				UserID: userID,
+				ID:     item,
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		return err
+	})
+
+	return err
 }
