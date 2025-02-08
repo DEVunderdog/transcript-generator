@@ -11,8 +11,6 @@ import (
 	"github.com/DEVunderdog/transcript-generator-backend/server"
 	"github.com/DEVunderdog/transcript-generator-backend/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/providers/google"
 	"github.com/rs/zerolog"
 )
 
@@ -45,10 +43,6 @@ func main() {
 	}
 
 	store := database.NewStore(connPool)
-
-	goth.UseProviders(
-		google.New(config.ClientID, config.ClientSecret, config.RedirectURL),
-	)
 
 	server, err := server.NewServer(ctx, store, config, baseLogger)
 	if err != nil {

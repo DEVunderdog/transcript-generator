@@ -199,7 +199,6 @@ func (server *Server) updateFile(ctx *gin.Context) {
 		ID:       file.ID,
 		FileName: file.FileName,
 	})
-
 }
 
 func (server *Server) deleteFile(ctx *gin.Context) {

@@ -103,7 +103,7 @@ func (store *SQLStore) UpdateFileNameTx(ctx context.Context, userID int32, oldFi
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		fileData, err := q.GetFileByName(ctx, GetFileByNameParams{
+		fileData, err := q.GetFileByNameByLocking(ctx, GetFileByNameByLockingParams{
 			FileName: oldFilename,
 			UserID:   userID,
 		})
@@ -152,7 +152,7 @@ func (store *SQLStore) LockFileTx(ctx context.Context, userID int32, filename st
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		fileData, err := q.GetFileByName(ctx, GetFileByNameParams{
+		fileData, err := q.GetFileByNameByLocking(ctx, GetFileByNameByLockingParams{
 			FileName: filename,
 			UserID:   userID,
 		})

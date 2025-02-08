@@ -16,6 +16,10 @@ for update;
 
 -- name: GetFileByName :one
 select * from file_registry
+where file_name = sqlc.arg(file_name) and user_id = sqlc.arg(user_id);
+
+-- name: GetFileByNameByLocking :one
+select * from file_registry
 where
     file_name = sqlc.arg(file_name)
     and user_id = sqlc.arg(user_id)

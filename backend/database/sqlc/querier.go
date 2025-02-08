@@ -20,6 +20,7 @@ type Querier interface {
 	GetActiveKeyBasedOnPurpose(ctx context.Context, purpose string) (GetActiveKeyBasedOnPurposeRow, error)
 	GetFileByID(ctx context.Context, arg GetFileByIDParams) (GetFileByIDRow, error)
 	GetFileByName(ctx context.Context, arg GetFileByNameParams) (FileRegistry, error)
+	GetFileByNameByLocking(ctx context.Context, arg GetFileByNameByLockingParams) (FileRegistry, error)
 	GetUsersID(ctx context.Context, email string) (int32, error)
 	ListAllFiles(ctx context.Context, arg ListAllFilesParams) ([]ListAllFilesRow, error)
 	ListConflictingFiles(ctx context.Context, arg ListConflictingFilesParams) ([]ListConflictingFilesRow, error)

@@ -95,10 +95,7 @@ func (q *Queries) GetFileByID(ctx context.Context, arg GetFileByIDParams) (GetFi
 
 const getFileByName = `-- name: GetFileByName :one
 select id, user_id, file_name, object_key, lock_status, upload_status, created_at, updated_at from file_registry
-where
-    file_name = $1
-    and user_id = $2
-for update
+where file_name = $1 and user_id = $2
 `
 
 type GetFileByNameParams struct {
@@ -108,6 +105,35 @@ type GetFileByNameParams struct {
 
 func (q *Queries) GetFileByName(ctx context.Context, arg GetFileByNameParams) (FileRegistry, error) {
 	row := q.db.QueryRow(ctx, getFileByName, arg.FileName, arg.UserID)
+	var i FileRegistry
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.FileName,
+		&i.ObjectKey,
+		&i.LockStatus,
+		&i.UploadStatus,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getFileByNameByLocking = `-- name: GetFileByNameByLocking :one
+select id, user_id, file_name, object_key, lock_status, upload_status, created_at, updated_at from file_registry
+where
+    file_name = $1
+    and user_id = $2
+for update
+`
+
+type GetFileByNameByLockingParams struct {
+	FileName string `json:"file_name"`
+	UserID   int32  `json:"user_id"`
+}
+
+func (q *Queries) GetFileByNameByLocking(ctx context.Context, arg GetFileByNameByLockingParams) (FileRegistry, error) {
+	row := q.db.QueryRow(ctx, getFileByNameByLocking, arg.FileName, arg.UserID)
 	var i FileRegistry
 	err := row.Scan(
 		&i.ID,

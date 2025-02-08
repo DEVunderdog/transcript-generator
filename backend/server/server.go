@@ -7,6 +7,7 @@ import (
 	"time"
 
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
+	"github.com/DEVunderdog/transcript-generator-backend/gcp/cloud_pubsub"
 	"github.com/DEVunderdog/transcript-generator-backend/gcp/storage"
 	"github.com/DEVunderdog/transcript-generator-backend/logger"
 	"github.com/DEVunderdog/transcript-generator-backend/middleware"
@@ -23,6 +24,7 @@ type Server struct {
 	store         database.Store
 	tokenMaker    token.TokenMaker
 	storageClient *storage.StorageClient
+	pubsubClient  *cloud_pubsub.CloudPubSubClient
 	baseLogger    *logger.Logger
 	httpLogger    *middleware.HTTPLogger
 }
@@ -91,11 +93,17 @@ func NewServer(ctx context.Context, store database.Store, config *utils.Config, 
 		return nil, fmt.Errorf("error creating storage client in gcp: %w", err)
 	}
 
+	pubSubClient, err := cloud_pubsub.NewCloudPubSubClient(ctx, config.ServiceAccountKeyPath, config.TopicID, config.ProjectID)
+	if err != nil {
+		return nil, fmt.Errorf("error while creating pub sub client in gcp: %w", err)
+	}
+
 	server := &Server{
 		config:        config,
 		store:         store,
 		tokenMaker:    *tokenMaker,
 		storageClient: storageClient,
+		pubsubClient:  pubSubClient,
 		baseLogger:    baseLogger,
 		httpLogger:    httpLogger,
 	}
@@ -111,6 +119,10 @@ func (server *Server) ServerShutdown(ctx context.Context, srv *http.Server) erro
 
 	if err := server.storageClient.Close(); err != nil {
 		return fmt.Errorf("error closing gcp storage client: %w", err)
+	}
+
+	if err := server.pubsubClient.Close(); err != nil {
+		return fmt.Errorf("error closing gcp pub sub client: %w", err)
 	}
 
 	if err := srv.Shutdown(ctx); err != nil {
@@ -143,15 +155,24 @@ func (server *Server) setupRouter() error {
 	router.POST("/server/api/register", server.generateAPIKey)
 
 	authRoutes := router.Group("/server/auth")
-	authRoutes.Use(middleware.Authenticate(*server.config, server.store))
-	authRoutes.DELETE("/api/delete", server.deleteAPIKey)
+	{
+		authRoutes.Use(middleware.Authenticate(*server.config, server.store))
+		authRoutes.DELETE("/api/delete", server.deleteAPIKey)
+	}
 
 	fileRoutes := authRoutes.Group("/files")
-	fileRoutes.POST("/upload", server.uploadFileToBucket)
-	fileRoutes.POST("/update", server.updateFile)
-	fileRoutes.GET("/list", server.listAllFiles)
-	fileRoutes.DELETE("/delete/:filename", server.deleteFile)
-	fileRoutes.GET("/sync", server.sync)
+	{
+		fileRoutes.POST("/upload", server.uploadFileToBucket)
+		fileRoutes.POST("/update", server.updateFile)
+		fileRoutes.GET("/list", server.listAllFiles)
+		fileRoutes.DELETE("/delete/:filename", server.deleteFile)
+		fileRoutes.GET("/sync", server.sync)
+	}
+
+	transcriptRoutes := authRoutes.Group("/transcript")
+	{
+		transcriptRoutes.GET("/request", server.requestTranscript)
+	}
 
 	server.router = router
 

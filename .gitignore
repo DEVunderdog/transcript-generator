@@ -3,4 +3,5 @@ rough.txt
 Makefile
 *.env
 rough.txt
-transcript_generator
+venv
+transcript_service_server

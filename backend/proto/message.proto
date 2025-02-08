@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package schema;
+
+option go_package = "github.com/DEVunderdog/transcript-generator-backend/pb";
+
+message TopicMessage{
+  string object_key = 1;
+  int64 user_id = 2;
+}
