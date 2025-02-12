@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     service_account_key_path: str
     bucket_name: str
     project_id: str
+    subscription_id: str
 
 
 settings = Settings(_env_file="../.env/transcript_service.env")
