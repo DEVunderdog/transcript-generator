@@ -3,13 +3,14 @@ from reportlab.pdfgen import canvas
 from textwrap import wrap
 from constants import constants
 
+
 class PdfProcessor:
     def __init__(self):
-        self.filename = constants.transcript_filename
+        self.filename = constants.transcript_dir + "/transcript.pdf"
 
     def generate_pdf(self, content):
         c = canvas.Canvas(self.filename, pagesize=letter)
-        width, height = letter # 612 x 792
+        width, height = letter  # 612 x 792
         x_margin, y_margin = 50, height - 50
         line_height = 15
 

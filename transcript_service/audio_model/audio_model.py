@@ -13,8 +13,6 @@ class ASRModel:
         self.sampling_rate = 16000
         self.block_length = 30
 
-        os.makedirs(self.resample_file_path, exist_ok=True)
-
     def instantiate_model(self):
         processor = Wav2Vec2Processor.from_pretrained(self.model_name)
         wav_model = Wav2Vec2ForCTC.from_pretrained(self.model_name)

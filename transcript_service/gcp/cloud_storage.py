@@ -1,4 +1,3 @@
-import os
 from google.cloud.storage import Client, transfer_manager
 from typing import List
 from gcp.cloud_config import _credentials
@@ -12,7 +11,6 @@ class CloudStorage:
         self.project_id = project_id
         self.bucket_name = bucket_name
 
-        os.makedirs(self.destination_directory, exist_ok=True)
 
     def download_audio_files(self, blob_names: List[str]) -> tuple[str, str]:
         storage_client = Client(credentials=_credentials, project=self.project_id)

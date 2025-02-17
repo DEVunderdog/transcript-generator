@@ -1,5 +1,6 @@
 import sys
 import shutil
+import os
 from google.cloud import pubsub_v1
 from gcp.cloud_pubsub import CloudPubSub
 from gcp.cloud_storage import CloudStorage
@@ -10,15 +11,20 @@ from logger import logger
 from constants import constants
 from pdf.generate_pdf import PdfProcessor
 
+
 class Service:
     def __init__(self, project_id: str, bucket_name: str, subscription_id: str):
+        os.makedirs(constants.temp_dir, exist_ok=True)
+        os.makedirs(constants.resample_file_path, exist_ok=True)
+        os.makedirs(constants.download_file_path, exist_ok=True)
+        os.makedirs(constants.transcript_dir, exist_ok=True)
+
         self.cloudPubSub = CloudPubSub(
             project_id=project_id, subscription_id=subscription_id
         )
         self.cloudStorage = CloudStorage(project_id=project_id, bucket_name=bucket_name)
         self.asrModel = ASRModel()
         self.pdfProcessor = PdfProcessor()
-
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
@@ -50,14 +56,9 @@ class Service:
         self.cloudPubSub.start_listening(callback=self.custom_callback)
 
     def cleanup(self):
-        audio_dir = Path(constants.resample_file_path)
-        object_dir = Path(constants.download_file_path)
+        temp_dir = Path(constants.temp_dir)
 
-        for file in audio_dir.iterdir():
-            if file.is_file():
-                file.unlink()
-
-        for item in object_dir.iterdir():
+        for item in temp_dir.iterdir():
             if item.is_dir():
                 shutil.rmtree(item)
             else:
