@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message TopicMessage{
+    string object_key = 1;
+    int64 user_id = 2;
+  }

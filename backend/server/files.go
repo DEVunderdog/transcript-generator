@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"strconv"
 
 	"github.com/DEVunderdog/transcript-generator-backend/constants"
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
@@ -18,7 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const maxFileSize = 1 * 1024 * 1024
+const maxFileSize = 50 * 1024 * 1024
 
 type uploadedFileResponse struct {
 	ID       int32  `json:"id" binding:"true"`
@@ -47,6 +46,13 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
 
 	extension := filepath.Ext(file.Filename)
+
+	if extension != ".wav" {
+		server.baseLogger.Error().Msgf("format of file: %s", extension)
+		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "please provided valid format of the file, only .wav file are accepted", nil)
+		return
+	}
+
 	newFileName := uuid.New().String() + extension
 	objectKey := fmt.Sprintf("%d/%s", payload.UserID, newFileName)
 
@@ -209,7 +215,6 @@ func (server *Server) deleteFile(ctx *gin.Context) {
 	}
 
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
-	userID := strconv.Itoa(int(payload.UserID))
 
 	lockFile, err := server.store.LockFileTx(ctx, int32(payload.UserID), fileName)
 
@@ -231,9 +236,7 @@ func (server *Server) deleteFile(ctx *gin.Context) {
 		return
 	}
 
-	objectKey := userID + "/" + lockFile.ObjectKey.String
-
-	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(objectKey)
+	object := server.storageClient.StorageClient.Bucket(server.storageClient.BucketName).Object(lockFile.ObjectKey.String)
 	if err := object.Delete(ctx); err != nil {
 		_, rollbackErr := server.store.UnlockAndLockFile(ctx, database.UnlockAndLockFileParams{
 			ID:         lockFile.ID,
