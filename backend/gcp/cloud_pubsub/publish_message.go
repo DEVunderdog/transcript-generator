@@ -10,10 +10,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func (cps *CloudPubSubClient) PublishMessage(ctx context.Context, objectKey string, userID int) error {
+func (cps *CloudPubSubClient) PublishMessage(ctx context.Context, email, objectKey string, userID int) error {
 	msg := &pb.TopicMessage{
 		ObjectKey: objectKey,
 		UserId:    int64(userID),
+		UserEmail: email,
 	}
 
 	topic := cps.client.Topic(cps.topicID)

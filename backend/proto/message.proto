@@ -7,4 +7,5 @@ option go_package = "github.com/DEVunderdog/transcript-generator-backend/pb";
 message TopicMessage{
   string object_key = 1;
   int64 user_id = 2;
+  string user_email = 3;
 }

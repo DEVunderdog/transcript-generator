@@ -10,10 +10,18 @@ from pathlib import Path
 from logger import logger
 from constants import constants
 from pdf.generate_pdf import PdfProcessor
+from mail.transcript_email import TranscriptEmail
 
 
 class Service:
-    def __init__(self, project_id: str, bucket_name: str, subscription_id: str):
+    def __init__(
+        self,
+        project_id: str,
+        bucket_name: str,
+        subscription_id: str,
+        sender_email: str,
+        sender_password: str,
+    ):
         os.makedirs(constants.temp_dir, exist_ok=True)
         os.makedirs(constants.resample_file_path, exist_ok=True)
         os.makedirs(constants.download_file_path, exist_ok=True)
@@ -25,6 +33,10 @@ class Service:
         self.cloudStorage = CloudStorage(project_id=project_id, bucket_name=bucket_name)
         self.asrModel = ASRModel()
         self.pdfProcessor = PdfProcessor()
+        self.emailProcessor = TranscriptEmail(
+            sender_email=sender_email,
+            sender_password=sender_password,
+        )
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
@@ -34,6 +46,8 @@ class Service:
 
             object_key = topic_message.object_key
             objects_list = [object_key]
+
+            user_email = topic_message.user_email
 
             file, file_name = self.cloudStorage.download_audio_files(objects_list)
 
@@ -46,7 +60,9 @@ class Service:
             )
 
             self.pdfProcessor.generate_pdf(content=transcript)
-            logger.info("transcript generate into pdf file")
+            self.emailProcessor.send_email(recipient_email=user_email)
+
+            logger.info("mail sent successfully")
 
         except Exception as e:
             logger.error(f"error parsing the message {str(e)}")

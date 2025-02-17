@@ -25,6 +25,19 @@ func (server *Server) requestTranscript(ctx *gin.Context) {
 
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
 
+	email, err := server.store.GetUser(ctx, int32(payload.UserID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			server.baseLogger.Error().Err(err).Msg("cannot find user record")
+			server.enhanceHTTPResponse(ctx, http.StatusNotFound, "cannot find user", nil)
+			return
+		}
+
+		server.baseLogger.Error().Err(err).Msg("error while fetching email for the user")
+		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error while fetching email for the user", nil)
+		return
+	}
+
 	file, err := server.store.GetFileByName(ctx, database.GetFileByNameParams{
 		FileName: query.Filename,
 		UserID:   int32(payload.UserID),
@@ -42,7 +55,7 @@ func (server *Server) requestTranscript(ctx *gin.Context) {
 		return
 	}
 
-	err = server.pubsubClient.PublishMessage(ctx, file.ObjectKey.String, payload.UserID)
+	err = server.pubsubClient.PublishMessage(ctx, email, file.ObjectKey.String, payload.UserID)
 	if err != nil {
 		server.baseLogger.Error().Err(err).Msg("error publishing message to topic")
 		server.enhanceHTTPResponse(ctx, http.StatusInternalServerError, "error requesting for transcript to service", nil)

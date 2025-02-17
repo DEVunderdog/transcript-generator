@@ -29,6 +29,18 @@ func (q *Queries) CreateUsers(ctx context.Context, email string) (User, error) {
 	return i, err
 }
 
+const getUser = `-- name: GetUser :one
+select email from users
+where id = $1
+`
+
+func (q *Queries) GetUser(ctx context.Context, id int32) (string, error) {
+	row := q.db.QueryRow(ctx, getUser, id)
+	var email string
+	err := row.Scan(&email)
+	return email, err
+}
+
 const getUsersID = `-- name: GetUsersID :one
 select id from users
 where email = $1

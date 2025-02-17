@@ -10,7 +10,10 @@ from google.protobuf import symbol_database as _symbol_database
 
 _sym_db = _symbol_database.Default()
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rmessage.proto\"3\n\x0cTopicMessage\x12\x12\n\nobject_key\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\x62\x06proto3')
+
+
+
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rmessage.proto\"G\n\x0cTopicMessage\x12\x12\n\nobject_key\x18\x01 \x01(\t\x12\x0f\n\x07user_id\x18\x02 \x01(\x03\x12\x12\n\nuser_email\x18\x03 \x01(\tb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'message_pb2', globals())
@@ -18,5 +21,5 @@ if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   _TOPICMESSAGE._serialized_start=17
-  _TOPICMESSAGE._serialized_end=68
+  _TOPICMESSAGE._serialized_end=88
 # @@protoc_insertion_point(module_scope)
