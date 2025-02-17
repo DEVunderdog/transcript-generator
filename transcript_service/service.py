@@ -1,10 +1,13 @@
+import sys
+import shutil
 from google.cloud import pubsub_v1
 from gcp.cloud_pubsub import CloudPubSub
 from gcp.cloud_storage import CloudStorage
 from audio_model.audio_model import ASRModel
 from custom_proto.message_pb2 import TopicMessage
+from pathlib import Path
 from logger import logger
-
+from constants import constants
 
 class Service:
     def __init__(self, project_id: str, bucket_name: str, subscription_id: str):
@@ -13,6 +16,7 @@ class Service:
         )
         self.cloudStorage = CloudStorage(project_id=project_id, bucket_name=bucket_name)
         self.asrModel = ASRModel()
+
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
@@ -41,3 +45,22 @@ class Service:
 
     def run_service(self):
         self.cloudPubSub.start_listening(callback=self.custom_callback)
+
+    def cleanup(self):
+        audio_dir = Path(constants.resample_file_path)
+        object_dir = Path(constants.download_file_path)
+
+        for file in audio_dir.iterdir():
+            if file.is_file():
+                file.unlink()
+
+        for item in object_dir.iterdir():
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+
+    def signal_handler(self, sig, frame):
+        logger.info("termination signal received cleaning up...")
+        self.cleanup()
+        sys.exit(0)

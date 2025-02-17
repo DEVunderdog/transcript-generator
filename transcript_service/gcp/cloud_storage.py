@@ -1,14 +1,18 @@
+import os
 from google.cloud.storage import Client, transfer_manager
 from typing import List
 from gcp.cloud_config import _credentials
 from logger import logger
+from constants import constants
 
 
 class CloudStorage:
     def __init__(self, project_id: str, bucket_name: str):
-        self.destination_directory = "./download/objects"
+        self.destination_directory = constants.download_file_path
         self.project_id = project_id
         self.bucket_name = bucket_name
+
+        os.makedirs(self.destination_directory, exist_ok=True)
 
     def download_audio_files(self, blob_names: List[str]) -> tuple[str, str]:
         storage_client = Client(credentials=_credentials, project=self.project_id)
@@ -20,7 +24,7 @@ class CloudStorage:
             max_workers=8,
         )
 
-        file = "./download/objects"
+        file = None
         file_name = None
 
         for name, result in zip(blob_names, results):
@@ -28,8 +32,7 @@ class CloudStorage:
                 logger.error(f"failed to download {name} due to exception: {result}")
             else:
                 logger.info(f"downloaded {name} to {self.destination_directory}")
-                file = file + "/" + name
+                file = self.destination_directory + "/" + name
                 file_name = name.split("/", 1)[1]
-                
 
         return file, file_name

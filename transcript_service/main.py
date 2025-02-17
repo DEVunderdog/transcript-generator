@@ -1,6 +1,17 @@
+import signal
 from service import Service
 from config import settings
+from logger import logger
 
 if __name__ == "__main__":
     execute_service = Service(project_id=settings.project_id, bucket_name=settings.bucket_name, subscription_id=settings.subscription_id)
-    execute_service.run_service()
+    
+    signal.signal(signal.SIGINT, execute_service.signal_handler)
+    signal.signal(signal.SIGTERM, execute_service.signal_handler)
+
+    try:
+        execute_service.run_service()
+    except Exception as e:
+        logger.info(f"error occurred: {e}")
+    finally:
+        execute_service.cleanup()

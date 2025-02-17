@@ -3,12 +3,13 @@ import soundfile
 import torch
 import os
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+from constants import constants
 
 
 class ASRModel:
     def __init__(self):
         self.model_name = "facebook/wav2vec2-base-960h"
-        self.resample_file_path = "./download/resample"
+        self.resample_file_path = constants.resample_file_path
         self.sampling_rate = 16000
         self.block_length = 30
 
