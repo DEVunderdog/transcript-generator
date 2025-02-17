@@ -8,6 +8,7 @@ from custom_proto.message_pb2 import TopicMessage
 from pathlib import Path
 from logger import logger
 from constants import constants
+from pdf.generate_pdf import PdfProcessor
 
 class Service:
     def __init__(self, project_id: str, bucket_name: str, subscription_id: str):
@@ -16,6 +17,7 @@ class Service:
         )
         self.cloudStorage = CloudStorage(project_id=project_id, bucket_name=bucket_name)
         self.asrModel = ASRModel()
+        self.pdfProcessor = PdfProcessor()
 
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
@@ -37,7 +39,8 @@ class Service:
                 processor=processor, model=wav_model, resampled_path=resample_file
             )
 
-            logger.info(f"transcipt: {transcript}")
+            self.pdfProcessor.generate_pdf(content=transcript)
+            logger.info("transcript generate into pdf file")
 
         except Exception as e:
             logger.error(f"error parsing the message {str(e)}")
