@@ -2,21 +2,28 @@ import librosa
 import soundfile
 import torch
 import os
-from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from constants import constants
-
 
 class ASRModel:
     def __init__(self):
-        self.model_name = "facebook/wav2vec2-base-960h"
+        self.model_id = "openai/whisper-tiny.en"
+        self.device = "cpu"
+        self.torch_dtype = torch.float32
         self.resample_file_path = constants.resample_file_path
         self.sampling_rate = 16000
-        self.block_length = 30
+        self.chunk_length = 30
 
     def instantiate_model(self):
-        processor = Wav2Vec2Processor.from_pretrained(self.model_name)
-        wav_model = Wav2Vec2ForCTC.from_pretrained(self.model_name)
-        return wav_model, processor
+        model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            self.model_id,
+            torch_dtype=self.torch_dtype,
+            low_cpu_mem_usage=True,
+            use_safetensors=True,
+        )
+        model.to(self.device)
+        processor = AutoProcessor.from_pretrained(self.model_id)
+        return model, processor
 
     def resample_file(self, file: str, file_name: str):
         audio, sound_rate = librosa.load(file, sr=self.sampling_rate)
@@ -24,41 +31,16 @@ class ASRModel:
         soundfile.write(resampled_file_path, audio, self.sampling_rate)
         return resampled_file_path
 
-    def asr_transcript(self, processor, model, resampled_path):
-        try:
-            transcript = ""
-            stream = librosa.stream(
-                resampled_path,
-                block_length=self.block_length,
-                frame_length=self.sampling_rate,
-                hop_length=self.sampling_rate,
-            )
+    def generate_transcript(self, model, processor, file):
+        pipe = pipeline(
+            task="automatic-speech-recognition",
+            model=model,
+            tokenizer=processor.tokenizer,
+            feature_extractor=processor.feature_extractor,
+            torch_dtype=self.torch_dtype,
+            device=self.device,
+            chunk_length_s=self.chunk_length,
+        )
 
-            for n, speech in enumerate(stream):
-                separator = " "
-                if n % 2 == 0:
-                    separator = "\n"
-                transcript += (
-                    self.generate_transcription(
-                        speech=speech, processor=processor, model=model
-                    )
-                    + separator
-                )
-            return transcript.strip()
-
-        except Exception as e:
-            raise RuntimeError(
-                f"Failed to process audio file {resampled_path}: {str(e)}"
-            )
-
-    def generate_transcription(self, speech, processor, model):
-        if len(speech.shape) > 1:
-            speech = speech[:, 0] + speech[:, 1]
-        input_values = processor(
-            speech, sampling_rate=self.sampling_rate, return_tensors="pt"
-        ).input_values
-        with torch.no_grad():  # Don't track gradients during inference
-            logits = model(input_values).logits
-        predicted_ids = torch.argmax(logits, dim=-1)
-        transcription = processor.decode(predicted_ids[0])
-        return transcription.lower()
+        result = pipe(file)
+        return result["text"]

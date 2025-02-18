@@ -53,11 +53,9 @@ class Service:
 
             resample_file = self.asrModel.resample_file(file=file, file_name=file_name)
 
-            wav_model, processor = self.asrModel.instantiate_model()
+            model, processor = self.asrModel.instantiate_model()
 
-            transcript = self.asrModel.asr_transcript(
-                processor=processor, model=wav_model, resampled_path=resample_file
-            )
+            transcript = self.asrModel.generate_transcript(model=model, processor=processor, file=resample_file)
 
             self.pdfProcessor.generate_pdf(content=transcript)
             self.emailProcessor.send_email(recipient_email=user_email)
