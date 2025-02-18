@@ -5,6 +5,7 @@ import os
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from constants import constants
 
+
 class ASRModel:
     def __init__(self):
         self.model_id = "openai/whisper-tiny.en"
@@ -32,15 +33,18 @@ class ASRModel:
         return resampled_file_path
 
     def generate_transcript(self, model, processor, file):
-        pipe = pipeline(
-            task="automatic-speech-recognition",
-            model=model,
-            tokenizer=processor.tokenizer,
-            feature_extractor=processor.feature_extractor,
-            torch_dtype=self.torch_dtype,
-            device=self.device,
-            chunk_length_s=self.chunk_length,
-        )
+        try:
+            pipe = pipeline(
+                task="automatic-speech-recognition",
+                model=model,
+                tokenizer=processor.tokenizer,
+                feature_extractor=processor.feature_extractor,
+                torch_dtype=self.torch_dtype,
+                device=self.device,
+                chunk_length_s=self.chunk_length,
+            )
 
-        result = pipe(file)
-        return result["text"]
+            result = pipe(file)
+            return result["text"]
+        except Exception as e:
+            raise RuntimeError(f"failed to process audi file: {str(e)}")
