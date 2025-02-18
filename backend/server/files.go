@@ -47,12 +47,6 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 
 	extension := filepath.Ext(file.Filename)
 
-	if extension != ".wav" {
-		server.baseLogger.Error().Msgf("format of file: %s", extension)
-		server.enhanceHTTPResponse(ctx, http.StatusBadRequest, "please provided valid format of the file, only .wav file are accepted", nil)
-		return
-	}
-
 	newFileName := uuid.New().String() + extension
 	objectKey := fmt.Sprintf("%d/%s", payload.UserID, newFileName)
 
