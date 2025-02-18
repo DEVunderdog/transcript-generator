@@ -29,6 +29,18 @@ type updateFileRequest struct {
 	FileID      int32  `json:"file_id" binding:"required"`
 }
 
+// @Summary Upload file to bucket
+// @Description Upload an audio file to the cloud storage.
+// @Tags Files
+// @Security ApiKeyAuth
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "File to upload"
+// @Success 200 {object} standardResponse "File uploaded successfully"
+// @Failure 400 {object} standardResponse "Bad Request"
+// @Failure 409 {object} standardResponse "Status Conflict"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/files/upload [POST]
 func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 
 	file, err := ctx.FormFile("file")
@@ -149,6 +161,14 @@ func (server *Server) uploadFileToBucket(ctx *gin.Context) {
 	})
 }
 
+// @Summary List Files
+// @Description List all files
+// @Tags Files
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} standardResponse "file fetched successfully"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/files/list [GET]
 func (server *Server) listAllFiles(ctx *gin.Context) {
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)
 
@@ -167,6 +187,18 @@ func (server *Server) listAllFiles(ctx *gin.Context) {
 	server.enhanceHTTPResponse(ctx, http.StatusOK, "files fetched successfully", files)
 }
 
+// @Summary Update File
+// @Description Update file name
+// @Tags Files
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param request body updateFileRequest true "File Name"
+// @Success 200 {object} standardResponse "File updated successfully"
+// @Failure 400 {object} standardResponse "Bad Request"
+// @Failure 404 {object} standardResponse "Not Found"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/files/update [POST]
 func (server *Server) updateFile(ctx *gin.Context) {
 	var req updateFileRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -201,6 +233,17 @@ func (server *Server) updateFile(ctx *gin.Context) {
 	})
 }
 
+// @Summary Delete a file
+// @Description Deletes a file from storage
+// @Tags Files
+// @Security ApiKeyAuth
+// @Produce json
+// @Param filename path string true "Filename to delete"
+// @Success 200 {object} standardResponse "File deleted successfully"
+// @Failure 400 {object} standardResponse "Bad Request"
+// @Failure 404 {object} standardResponse "File not found"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/files/delete/{filename} [DELETE]
 func (server *Server) deleteFile(ctx *gin.Context) {
 	fileName := ctx.Param("filename")
 	if fileName == "" {

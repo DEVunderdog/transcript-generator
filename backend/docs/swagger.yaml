@@ -1,0 +1,304 @@
+basePath: /server
+definitions:
+  server.apiKeyRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  server.apiKeyResponse:
+    properties:
+      api_key:
+        type: string
+    type: object
+  server.responseData:
+    description: Response data structure
+    properties:
+      data: {}
+      status:
+        type: integer
+    type: object
+  server.standardResponse:
+    description: Standard response structure
+    properties:
+      message:
+        type: string
+      response:
+        $ref: '#/definitions/server.responseData'
+    type: object
+  server.updateFileRequest:
+    properties:
+      file_id:
+        type: integer
+      new_file_name:
+        type: string
+    required:
+    - file_id
+    - new_file_name
+    type: object
+host: localhost:9081
+info:
+  contact: {}
+  description: API for generating transcript from audio files using OpenAI Whisper
+    Model, please note that you will receive the transcript.pdf file on your registered
+    email address.
+  title: Transcript Generator API
+  version: "1.0"
+paths:
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a user and generates an API Key
+      parameters:
+      - description: User Email
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.apiKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: api keys created
+          schema:
+            $ref: '#/definitions/server.apiKeyResponse'
+        "400":
+          description: invalid request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "403":
+          description: user already present
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      summary: Generate API Key
+      tags:
+      - Authentication
+  /auth/api/delete:
+    delete:
+      description: Request to delete the API Key
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: api key deleted successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete API Key
+      tags:
+      - Authentication
+  /auth/files/delete/{filename}:
+    delete:
+      description: Deletes a file from storage
+      parameters:
+      - description: Filename to delete
+        in: path
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File deleted successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "404":
+          description: File not found
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a file
+      tags:
+      - Files
+  /auth/files/list:
+    get:
+      description: List all files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: file fetched successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List Files
+      tags:
+      - Files
+  /auth/files/sync:
+    post:
+      description: Sync files if locked
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Operation Done
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Sync Files
+      tags:
+      - Files
+  /auth/files/update:
+    post:
+      consumes:
+      - application/json
+      description: Update file name
+      parameters:
+      - description: File Name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/server.updateFileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File updated successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update File
+      tags:
+      - Files
+  /auth/files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload an audio file to the cloud storage.
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File uploaded successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "409":
+          description: Status Conflict
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Upload file to bucket
+      tags:
+      - Files
+  /auth/transcript/request:
+    get:
+      consumes:
+      - application/json
+      description: Request a transcript for a specific uploaded audio file by providing
+        file name.
+      parameters:
+      - description: Filename of the uploaded file
+        in: query
+        name: filename
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transcript requested successfully
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Request Transcript
+      tags:
+      - Transcript
+  /health:
+    get:
+      description: server health check
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: server status
+          schema:
+            $ref: '#/definitions/server.standardResponse'
+      summary: Health Check
+      tags:
+      - Health
+schemes:
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

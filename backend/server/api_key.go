@@ -17,6 +17,17 @@ type apiKeyResponse struct {
 	APIKey string `json:"api_key"`
 }
 
+// @Summary Generate API Key
+// @Description Registers a user and generates an API Key
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body apiKeyRequest true "User Email"
+// @Success 201 {object} apiKeyResponse "api keys created"
+// @Failure 400 {object} standardResponse "invalid request"
+// @Failure 403 {object} standardResponse "user already present"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /api/register [POST]
 func (server *Server) generateAPIKey(ctx *gin.Context) {
 
 	var req apiKeyRequest
@@ -57,6 +68,14 @@ func (server *Server) generateAPIKey(ctx *gin.Context) {
 	})
 }
 
+// @Summary Delete API Key
+// @Description Request to delete the API Key
+// @Tags Authentication
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} standardResponse "api key deleted successfully"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/api/delete [DELETE]
 func (server *Server) deleteAPIKey(ctx *gin.Context) {
 
 	payload := ctx.MustGet(constants.PayloadKey).(token.Payload)

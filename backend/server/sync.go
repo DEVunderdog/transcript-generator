@@ -17,6 +17,15 @@ type matchResult struct {
 	unmatchedResults []int32
 }
 
+// @Summary Sync Files
+// @Description Sync files if locked
+// @Tags Files
+// @Security ApiKeyAuth
+// @Produce json
+// @Success 200 {object} standardResponse "Operation Done"
+// @Failure 400 {object} standardResponse "Bad Request"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/files/sync [POST]
 func (server *Server) sync(ctx *gin.Context) {
 
 	listOfFilesInBucket := make(map[string]struct{})

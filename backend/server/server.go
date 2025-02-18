@@ -14,8 +14,12 @@ import (
 
 	"github.com/DEVunderdog/transcript-generator-backend/token"
 	"github.com/DEVunderdog/transcript-generator-backend/utils"
+
+	_ "github.com/DEVunderdog/transcript-generator-backend/docs"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Server struct {
@@ -29,11 +33,13 @@ type Server struct {
 	httpLogger    *middleware.HTTPLogger
 }
 
+// @Description Response data structure
 type responseData struct {
 	Status int `json:"status"`
 	Data   any `json:"data,omitempty"`
 }
 
+// @Description Standard response structure
 type standardResponse struct {
 	Message  string       `json:"message"`
 	Response responseData `json:"response"`
@@ -62,6 +68,7 @@ func (server *Server) Start() *http.Server {
 
 	return srv
 }
+
 
 func NewServer(ctx context.Context, store database.Store, config *utils.Config, baseLogger *logger.Logger) (*Server, error) {
 	httpLogger := middleware.NewHTTPLogger(baseLogger)
@@ -153,6 +160,7 @@ func (server *Server) setupRouter() error {
 
 	router.GET("/server/health", server.serverHealthCheck)
 	router.POST("/server/api/register", server.generateAPIKey)
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	authRoutes := router.Group("/server/auth")
 	{

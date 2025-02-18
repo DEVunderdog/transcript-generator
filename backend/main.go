@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
+	_ "github.com/DEVunderdog/transcript-generator-backend/docs"
 	"github.com/DEVunderdog/transcript-generator-backend/logger"
 	"github.com/DEVunderdog/transcript-generator-backend/server"
 	"github.com/DEVunderdog/transcript-generator-backend/utils"
@@ -14,8 +15,16 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// @title Transcript Generator API
+// @version 1.0
+// @description API for generating transcript from audio files using OpenAI Whisper Model, please note that you will receive the transcript.pdf file on your registered email address.
+// @host localhost:9081
+// @BasePath /server
+// @schemes http
+// @securityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

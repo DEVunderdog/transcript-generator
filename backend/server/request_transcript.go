@@ -15,6 +15,18 @@ type transcriptRequestQuery struct {
 	Filename string `form:"filename" binding:"required"`
 }
 
+// @Summary Request Transcript
+// @Description Request a transcript for a specific uploaded audio file by providing file name.
+// @Tags Transcript
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param filename query string true "Filename of the uploaded file"
+// @Success 200 {object} standardResponse "Transcript requested successfully"
+// @Failure 400 {object} standardResponse "Bad Request"
+// @Failure 404 {object} standardResponse "Not Found"
+// @Failure 500 {object} standardResponse "Internal Server Error"
+// @Router /auth/transcript/request [GET]
 func (server *Server) requestTranscript(ctx *gin.Context) {
 	var query transcriptRequestQuery
 	if err := ctx.ShouldBindQuery(&query); err != nil {

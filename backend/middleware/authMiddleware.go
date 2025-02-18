@@ -3,7 +3,6 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/DEVunderdog/transcript-generator-backend/constants"
 	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
@@ -36,18 +35,7 @@ func Authenticate(config utils.Config, store database.Store) gin.HandlerFunc {
 			return
 		}
 
-		apiString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		parts := strings.SplitN(apiString, " ", 2)
-		if len(parts) != 2 || parts[0] != "ApiKey" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "invalid api key"})
-			ctx.Abort()
-			return
-		}
-
-		apiKey := parts[1]
-
-		apiDetails, err := store.GetAPIKey(ctx, []byte(apiKey))
+		apiDetails, err := store.GetAPIKey(ctx, []byte(authHeader))
 		if err != nil {
 			log.Printf("Error: %s", err.Error())
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "please provide valid API Key"})
@@ -55,7 +43,7 @@ func Authenticate(config utils.Config, store database.Store) gin.HandlerFunc {
 			return
 		}
 
-		err = token.VerifyAPIKey(apiKey, apiDetails.Signature, publicKey)
+		err = token.VerifyAPIKey(authHeader, apiDetails.Signature, publicKey)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid api key",
@@ -65,7 +53,7 @@ func Authenticate(config utils.Config, store database.Store) gin.HandlerFunc {
 		}
 
 		ctx.Set(constants.PayloadKey, token.Payload{
-			APIKey: apiKey,
+			APIKey: authHeader,
 			UserID: int(apiDetails.UserID),
 		})
 
