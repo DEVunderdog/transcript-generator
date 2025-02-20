@@ -12,7 +12,7 @@ import (
 	"errors"
 	"io"
 
-	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
+	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"golang.org/x/crypto/pbkdf2"
 )

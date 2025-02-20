@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
 	_ "github.com/DEVunderdog/transcript-generator-backend/docs"
-	"github.com/DEVunderdog/transcript-generator-backend/logger"
-	"github.com/DEVunderdog/transcript-generator-backend/server"
-	"github.com/DEVunderdog/transcript-generator-backend/utils"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/api"
+	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/logger"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -53,7 +53,7 @@ func main() {
 
 	store := database.NewStore(connPool)
 
-	server, err := server.NewServer(ctx, store, config, baseLogger)
+	server, err := api.NewServer(ctx, store, config, baseLogger)
 	if err != nil {
 		baseLogger.Fatal().Err(err).Msg("error creating server")
 	}

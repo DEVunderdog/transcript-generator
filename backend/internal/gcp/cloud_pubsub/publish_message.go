@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/pubsub"
-	"github.com/DEVunderdog/transcript-generator-backend/proto/pb"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/proto/pb"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )

@@ -1,4 +1,4 @@
-package server
+package api
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
-	"github.com/DEVunderdog/transcript-generator-backend/gcp/cloud_pubsub"
-	"github.com/DEVunderdog/transcript-generator-backend/gcp/storage"
-	"github.com/DEVunderdog/transcript-generator-backend/logger"
-	"github.com/DEVunderdog/transcript-generator-backend/middleware"
+	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/gcp/cloud_pubsub"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/gcp/storage"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/logger"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/middleware"
 
-	"github.com/DEVunderdog/transcript-generator-backend/token"
-	"github.com/DEVunderdog/transcript-generator-backend/utils"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/token"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/utils"
 
 	_ "github.com/DEVunderdog/transcript-generator-backend/docs"
 	"github.com/gin-contrib/cors"

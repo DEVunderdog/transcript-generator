@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/DEVunderdog/transcript-generator-backend/constants"
-	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
-	"github.com/DEVunderdog/transcript-generator-backend/token"
-	"github.com/DEVunderdog/transcript-generator-backend/utils"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/constants"
+	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/token"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,4 +1,4 @@
-package server
+package api
 
 import (
 	"errors"
@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/DEVunderdog/transcript-generator-backend/constants"
-	database "github.com/DEVunderdog/transcript-generator-backend/database/sqlc"
-	custom_errors "github.com/DEVunderdog/transcript-generator-backend/errors"
-	"github.com/DEVunderdog/transcript-generator-backend/token"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/constants"
+	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
+	custom_errors "github.com/DEVunderdog/transcript-generator-backend/internal/errors"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/token"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/DEVunderdog/transcript-generator-backend/logger"
+	"github.com/DEVunderdog/transcript-generator-backend/internal/logger"
 	"github.com/gin-gonic/gin"
 )
 

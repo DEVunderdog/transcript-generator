@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	custom_errors "github.com/DEVunderdog/transcript-generator-backend/errors"
+	custom_errors "github.com/DEVunderdog/transcript-generator-backend/internal/errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
