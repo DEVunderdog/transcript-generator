@@ -17,7 +17,7 @@ type Config struct {
 	ProjectID     string `mapstructure:"PROJECT_ID"`
 }
 
-func LoadConfig(path string) (config *Config, err error) {
+func LoadDevConfig(path string) (config *Config, err error) {
 	viper.SetConfigFile(path)
 
 	viper.AutomaticEnv()
@@ -28,6 +28,17 @@ func LoadConfig(path string) (config *Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func LoadProdConfig() (config *Config, err error) {
+	viper.AutomaticEnv()
+
+	err = viper.ReadInConfig()
 	if err != nil {
 		return
 	}

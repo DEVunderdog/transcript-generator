@@ -41,7 +41,12 @@ func main() {
 
 	baseLogger := logger.NewLogger(logConfig)
 
-	config, err := utils.LoadConfig("../.env/backend.env")
+	// config, err := utils.LoadDevConfig("../.env/backend.env")
+	// if err != nil {
+	// 	baseLogger.Fatal().Err(err).Msg("error loading configuration")
+	// }
+
+	config, err := utils.LoadProdConfig()
 	if err != nil {
 		baseLogger.Fatal().Err(err).Msg("error loading configuration")
 	}
@@ -69,10 +74,6 @@ func main() {
 	<-ctx.Done()
 
 	stop()
-
-	// if err := srv.Shutdown(ctx); err != nil {
-	// 	baseLogger.Fatal().Msg("server shutting down")
-	// }
 
 	if err := server.ServerShutdown(ctx, srv); err != nil {
 		baseLogger.Fatal().Err(err).Msg("error while server is shutting down")
