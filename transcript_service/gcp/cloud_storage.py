@@ -1,6 +1,5 @@
 from google.cloud.storage import Client, transfer_manager
 from typing import List
-from gcp.cloud_config import _credentials
 from logger import logger
 from constants import constants
 
@@ -13,7 +12,7 @@ class CloudStorage:
 
 
     def download_audio_files(self, blob_names: List[str]) -> tuple[str, str]:
-        storage_client = Client(credentials=_credentials, project=self.project_id)
+        storage_client = Client(project=self.project_id)
         bucket = storage_client.bucket(self.bucket_name)
         results = transfer_manager.download_many_to_path(
             bucket=bucket,

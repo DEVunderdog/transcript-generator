@@ -69,7 +69,6 @@ func (server *Server) Start() *http.Server {
 	return srv
 }
 
-
 func NewServer(ctx context.Context, store database.Store, config *utils.Config, baseLogger *logger.Logger) (*Server, error) {
 	httpLogger := middleware.NewHTTPLogger(baseLogger)
 
@@ -95,12 +94,12 @@ func NewServer(ctx context.Context, store database.Store, config *utils.Config, 
 
 	tokenMaker := token.NewTokenMaker(publicKey, privateKey)
 
-	storageClient, err := storage.NewStorageClient(ctx, config.ServiceAccountKeyPath, config.BucketName)
+	storageClient, err := storage.NewStorageClient(ctx, config.BucketName)
 	if err != nil {
 		return nil, fmt.Errorf("error creating storage client in gcp: %w", err)
 	}
 
-	pubSubClient, err := cloud_pubsub.NewCloudPubSubClient(ctx, config.ServiceAccountKeyPath, config.TopicID, config.ProjectID)
+	pubSubClient, err := cloud_pubsub.NewCloudPubSubClient(ctx, config.TopicID, config.ProjectID)
 	if err != nil {
 		return nil, fmt.Errorf("error while creating pub sub client in gcp: %w", err)
 	}

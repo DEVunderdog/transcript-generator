@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
 )
 
 type CloudPubSubClient struct {
@@ -12,8 +11,8 @@ type CloudPubSubClient struct {
 	topicID string
 }
 
-func NewCloudPubSubClient(ctx context.Context, credPath, topicID, projectID string) (*CloudPubSubClient, error) {
-	pubSubClient, err := pubsub.NewClient(ctx, projectID, option.WithCredentialsFile(credPath))
+func NewCloudPubSubClient(ctx context.Context, topicID, projectID string) (*CloudPubSubClient, error) {
+	pubSubClient, err := pubsub.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}

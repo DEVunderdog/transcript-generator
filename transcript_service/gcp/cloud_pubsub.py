@@ -1,15 +1,13 @@
 from google.cloud import pubsub_v1
 from typing import Callable
 from logger import logger
-from gcp.cloud_config import _credentials
-
 
 class CloudPubSub:
     def __init__(self, project_id: str, subscription_id: str, timeout: float = 5.0):
         self.project_id = project_id
         self.subscription_id = subscription_id
         self.timeout = timeout
-        self.subscriber = pubsub_v1.SubscriberClient(credentials=_credentials)
+        self.subscriber = pubsub_v1.SubscriberClient()
         self.subscription_path = self.subscriber.subscription_path(
             self.project_id, self.subscription_id
         )
