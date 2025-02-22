@@ -41,11 +41,6 @@ func main() {
 
 	baseLogger := logger.NewLogger(logConfig)
 
-	// config, err := utils.LoadDevConfig("../.env/backend.env")
-	// if err != nil {
-	// 	baseLogger.Fatal().Err(err).Msg("error loading configuration")
-	// }
-
 	config, err := utils.LoadProdConfig()
 	if err != nil {
 		baseLogger.Fatal().Err(err).Msg("error loading configuration")

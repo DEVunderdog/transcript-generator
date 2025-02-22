@@ -1,7 +1,8 @@
 import signal
-from service import Service
+
 from config import settings
 from logger import logger
+from service import Service
 
 if __name__ == "__main__":
     execute_service = Service(
