@@ -30,13 +30,6 @@ func main() {
 
 	logConfig := logger.LoggerConfig{
 		LogLevel: zerolog.InfoLevel,
-		FileConfig: &logger.FileConfig{
-			Path:       "../logs/backend/backend.log",
-			MaxSize:    10,
-			MaxBackups: 5,
-			MaxAge:     30,
-			Compress:   true,
-		},
 	}
 
 	baseLogger := logger.NewLogger(logConfig)

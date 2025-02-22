@@ -17,7 +17,6 @@ require (
 	golang.org/x/crypto v0.33.0
 	google.golang.org/api v0.210.0
 	google.golang.org/protobuf v1.36.5
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
