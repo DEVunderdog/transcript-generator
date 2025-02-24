@@ -1,0 +1,43 @@
+name: Build and Push Docker Image to GCP Artifact Registry
+
+on:
+    push:
+        branches:
+        - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: read
+        id-token: write
+    steps:
+    -   name: code checkout
+        uses: actions/checkout@v4
+        
+    -   name: google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+            token_format: access_token
+            project_id: ${{ secrets.GCP_PROJECT_ID }}
+            workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+            service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+    
+    -   name: docker auth
+        id: docker-auth
+        uses: 'docker/login-action@v3'
+        with:
+            username: oauth2accesstoken
+            password: ${{ steps.auth.outputs.access_token }}
+            registry: ${{ secrets.GCP_REPO_LOCATION}}-docker.pkg.dev
+    
+    -   name: build and push backend container
+        run: |-
+            docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f  backend/docker/Dockerfile.backend ./backend
+            docker push ${{ secrets.GCP_REPO_URL }}/backend:latest
+    
+    -   name: build and push transcript service container
+        run: |-
+            docker build -t ${{ secrets.GCP_REPO_URL }}/transcript-service:latest -f transcript_service/docker/Dockerfile.transcript_service ./transcript_service
+            docker push ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
