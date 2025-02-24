@@ -7,10 +7,10 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
     permissions:
         contents: read
         id-token: write
+    runs-on: ubuntu-latest
     steps:
     -   name: code checkout
         uses: actions/checkout@v4
