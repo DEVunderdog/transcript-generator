@@ -16,7 +16,7 @@ WORKDIR /
 
 COPY --from=build-stage /app/bin/backend_service /app/bin/backend_service
 
-EXPOSE 9081
+EXPOSE 8080
 
 USER nonroot:nonroot
 
