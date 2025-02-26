@@ -24,7 +24,7 @@ func LoadProdConfig() (config *Config, err error) {
 	viper.AutomaticEnv()
 
 	required := []string{
-		"PORT",
+		"SERVER_PORT",
 		"DB_SOURCE",
 		"PASSPHRASE",
 		"AUDIENCE",
