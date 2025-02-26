@@ -1,87 +1,86 @@
-# Changed DB_SOURCe
 name: Build and Push Docker Image to GCP Artifact Registry
 
 on:
-    push:
-        branches:
-        - main
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-push:
     permissions:
-        contents: read
-        id-token: write
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
-    -   name: code checkout
+      - name: code checkout
         uses: actions/checkout@v4
-        
-    -   name: google auth
+
+      - name: google auth
         id: auth
         uses: google-github-actions/auth@v2
         with:
-            token_format: access_token
-            project_id: ${{ secrets.GCP_PROJECT_ID }}
-            workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-            service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-    
-    -   name: docker auth
-        id: docker-auth
-        uses: 'docker/login-action@v3'
-        with:
-            username: oauth2accesstoken
-            password: ${{ steps.auth.outputs.access_token }}
-            registry: ${{ secrets.GCP_REPO_LOCATION}}-docker.pkg.dev
-    
-    -   name: build and push backend container
-        run: |-
-            docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f  backend/docker/Dockerfile.backend ./backend
-            docker push ${{ secrets.GCP_REPO_URL }}/backend:latest
-    
-    -   name: build and push transcript service container
-        run: |-
-            docker build -t ${{ secrets.GCP_REPO_URL }}/transcript-service:latest -f transcript_service/docker/Dockerfile.transcript_service ./transcript_service
-            docker push ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+          token_format: access_token
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-    -   name: deploy backend to cloud run
+      - name: docker auth
+        id: docker-auth
+        uses: "docker/login-action@v3"
+        with:
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+          registry: ${{ secrets.GCP_REPO_LOCATION}}-docker.pkg.dev
+
+      - name: build and push backend container
+        run: |-
+          docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f  backend/docker/Dockerfile.backend ./backend
+          docker push ${{ secrets.GCP_REPO_URL }}/backend:latest
+
+      - name: build and push transcript service container
+        run: |-
+          docker build -t ${{ secrets.GCP_REPO_URL }}/transcript-service:latest -f transcript_service/docker/Dockerfile.transcript_service ./transcript_service
+          docker push ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+
+      - name: deploy backend to cloud run
         id: deploy-backend
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-            service: transcript-generator-backend
-            region: ${{ secrets.GCP_REGION }}
-            image: ${{ secrets.GCP_REPO_URL }}/backend:latest
-            env_vars: |-
-                SERVER_PORT=8080
-                DB_SOURCE=${{secrets.DB_SOURCE}}
-                PASSPHRASE=${{secrets.PASSPHRASE}}
-                AUDIENCE=${{secrets.AUDIENCE}}
-                ISSUER=${{secrets.ISSUER}}
-                BUCKET_NAME=${{secrets.BUCKET_NAME}}
-                TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
-                TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
-                KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
-                TOPIC_ID=${{secrets.TOPIC_ID}}
-                PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
-            flags: |
-                --port=8080
-                --min-instances=0
-                --memory=512Mi
-                --cpu=1
-                --allow-unauthenticated
-                --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
-    
-    -   name: deploy transcript service to cloud run
+          service: transcript-generator-backend
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ secrets.GCP_REPO_URL }}/backend:latest
+          env_vars: |-
+            SERVER_PORT=8080
+            DB_SOURCE=${{secrets.DB_SOURCE}}
+            PASSPHRASE=${{secrets.PASSPHRASE}}
+            AUDIENCE=${{secrets.AUDIENCE}}
+            ISSUER=${{secrets.ISSUER}}
+            BUCKET_NAME=${{secrets.BUCKET_NAME}}
+            TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
+            TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
+            KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
+            TOPIC_ID=${{secrets.TOPIC_ID}}
+            PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
+          flags: |
+            --port=8080
+            --min-instances=0
+            --memory=512Mi
+            --cpu=1
+            --allow-unauthenticated
+            --vpc-egress=all-traffic
+            --vpc-connector=${{secrets.VPC_CONNECTOR}}
+            --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
+
+      - name: deploy transcript service to cloud run
         id: deploy-transcript-service
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-            service: transcript-generator-core-service
-            region: ${{ secrets.GCP_REGION }}
-            image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
-            env_vars: |-
-                BUCKET_NAME=${{ secrets.BUCKET_NAME }}
-                PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-                SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
-                SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
-                SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
-
-    
+          service: transcript-generator-core-service
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+          env_vars: |-
+            BUCKET_NAME=${{ secrets.BUCKET_NAME }}
+            PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+            SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
+            SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
+            SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
