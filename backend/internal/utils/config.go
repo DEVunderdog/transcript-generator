@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	Port          string `mapstructure:"PORT"`
+	Port          string `mapstructure:"SERVER_PORT"`
 	DBSource      string `mapstructure:"DB_SOURCE"`
 	Passphrase    string `mapstructure:"PASSPHRASE"`
 	Audience      string `mapstructure:"AUDIENCE"`

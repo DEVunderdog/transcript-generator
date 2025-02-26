@@ -41,3 +41,45 @@ jobs:
         run: |-
             docker build -t ${{ secrets.GCP_REPO_URL }}/transcript-service:latest -f transcript_service/docker/Dockerfile.transcript_service ./transcript_service
             docker push ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+
+    -   name: deploy backend to cloud run
+        id: deploy-backend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+            service: transcript-generator-backend
+            region: ${{ secrets.GCP_REGION }}
+            image: ${{ secrets.GCP_REPO_URL }}/backend:latest
+            env_vars: |-
+                SERVER_PORT=8080
+                DB_SOURCE=${{secrets.DB_SOURCE}}
+                PASSPHRASE=${{secrets.PASSPHRASE}}
+                AUDIENCE=${{secrets.AUDIENCE}}
+                ISSUER=${{secrets.ISSUER}}
+                BUCKET_NAME=${{secrets.BUCKET_NAME}}
+                TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
+                TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
+                KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
+                TOPIC_ID=${{secrets.TOPIC_ID}}
+                PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
+            flags: |
+                --port=8080
+                --min-instances=0
+                --memory=512Mi
+                --cpu=1
+                --allow-unauthenticated
+                --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
+    
+    -   name: deploy transcript service to cloud run
+        id: deploy-transcript-service
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+            service: transcript-generator-core-service
+            region: ${{ secrets.GCP_REGION }}
+            image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+            env_vars: |-
+                BUCKET_NAME=${{ secrets.BUCKET_NAME }}
+                PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+                SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
+                SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
+                SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
+    
