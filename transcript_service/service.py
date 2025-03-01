@@ -1,16 +1,17 @@
-import sys
-import shutil
 import os
-from google.cloud import pubsub_v1
+import shutil
+import sys
+from pathlib import Path
+
+from audio_model.audio_model import ASRModel
+from constants import constants
+from custom_proto.message_pb2 import TopicMessage
 from gcp.cloud_pubsub import CloudPubSub
 from gcp.cloud_storage import CloudStorage
-from audio_model.audio_model import ASRModel
-from custom_proto.message_pb2 import TopicMessage
-from pathlib import Path
+from google.cloud import pubsub_v1
 from logger import logger
-from constants import constants
-from pdf.generate_pdf import PdfProcessor
 from mail.transcript_email import TranscriptEmail
+from pdf.generate_pdf import PdfProcessor
 
 
 class Service:
@@ -22,10 +23,7 @@ class Service:
         sender_email: str,
         sender_password: str,
     ):
-        os.makedirs(constants.temp_dir, exist_ok=True)
-        os.makedirs(constants.resample_file_path, exist_ok=True)
-        os.makedirs(constants.download_file_path, exist_ok=True)
-        os.makedirs(constants.transcript_dir, exist_ok=True)
+        self._ensure_directories()
 
         self.cloudPubSub = CloudPubSub(
             project_id=project_id, subscription_id=subscription_id
@@ -37,6 +35,35 @@ class Service:
             sender_email=sender_email,
             sender_password=sender_password,
         )
+
+    def _ensure_directories(self):
+        """Safely create required directories with proper error handling."""
+        required_dirs = [
+            constants.temp_dir,
+            constants.resample_file_path,
+            constants.download_file_path,
+            constants.transcript_dir,
+        ]
+
+        for directory in required_dirs:
+            try:
+                os.makedirs(directory, exist_ok=True)
+                # Verify we can write to the directory
+                test_file = os.path.join(directory, ".write_test")
+                try:
+                    with open(test_file, "w") as f:
+                        f.write("test")
+                    os.remove(test_file)
+                except (IOError, OSError) as e:
+                    logger.error(f"Directory {directory} is not writable: {str(e)}")
+                    raise RuntimeError(
+                        f"Directory {directory} is not writable. Please check permissions."
+                    )
+            except PermissionError as e:
+                logger.error(f"Failed to create directory {directory}: {str(e)}")
+                raise RuntimeError(
+                    f"Cannot create directory {directory}. Please check permissions."
+                )
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
@@ -55,7 +82,9 @@ class Service:
 
             model, processor = self.asrModel.instantiate_model()
 
-            transcript = self.asrModel.generate_transcript(model=model, processor=processor, file=resample_file)
+            transcript = self.asrModel.generate_transcript(
+                model=model, processor=processor, file=resample_file
+            )
 
             self.pdfProcessor.generate_pdf(content=transcript)
             self.emailProcessor.send_email(recipient_email=user_email)

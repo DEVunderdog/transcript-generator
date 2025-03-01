@@ -17,6 +17,10 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
+
+RUN mkdir -p /app/temp /app/resample /app/downloads /app/transcripts && \
+    chown -R appuser:appuser /app
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/home/appuser/.local/bin:$PATH"
