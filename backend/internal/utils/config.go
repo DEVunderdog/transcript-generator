@@ -21,7 +21,22 @@ type Config struct {
 }
 
 func LoadProdConfig() (config *Config, err error) {
+	viper.SetEnvPrefix("")
 	viper.AutomaticEnv()
+
+	config = &Config{}
+
+	viper.BindEnv("SERVER_PORT")
+	viper.BindEnv("DB_SOURCE")
+	viper.BindEnv("PASSPHRASE")
+	viper.BindEnv("AUDIENCE")
+	viper.BindEnv("ISSUER")
+	viper.BindEnv("BUCKET_NAME")
+	viper.BindEnv("TOKEN_TYPE")
+	viper.BindEnv("TOKEN_DURATION")
+	viper.BindEnv("KEYS_PURPOSE")
+	viper.BindEnv("TOPIC_ID")
+	viper.BindEnv("PROJECT_ID")
 
 	required := []string{
 		"SERVER_PORT",
@@ -43,9 +58,9 @@ func LoadProdConfig() (config *Config, err error) {
 		}
 	}
 
-	config = &Config{}
-
-	err = viper.Unmarshal(&config)
-
+	if err := viper.Unmarshal(&config); err != nil {
+		return nil, fmt.Errorf("error unmarshalling config: %v", err)
+	}
+	
 	return
 }
