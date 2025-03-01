@@ -89,17 +89,14 @@ jobs:
             --memory=512Mi
             --vpc-egress=all-traffic
             --vpc-connector=${{secrets.VPC_CONNECTOR}}
-            --no-traffic
             --no-allow-unauthenticated
             --ingress=internal
 
       - name: bind pub/sub to transcript core service
         run: |-
-          gcloud run services update-traffic transcript-generator-core-service \
-            --region=${{secrets.GCP_REGION}} --to-latest
           gcloud eventarc triggers create transcript-trigger \
             --destination-run-service=transcript-generator-core-service \
             --destination-run-region=${{ secrets.GCP_REGION }} \
-            --event-filters="type=google.cloud.pubsub.topic.v1.messagePublished"
-            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }}
+            --event-filters="type=google.cloud.pubsub.topic.v1.messagePublished" \
+            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }} \
             --transport-topic=${{secrets.TOPIC_ID}}
