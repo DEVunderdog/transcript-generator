@@ -3,10 +3,9 @@ from typing import Callable
 from logger import logger
 
 class CloudPubSub:
-    def __init__(self, project_id: str, subscription_id: str, timeout: float = 5.0):
+    def __init__(self, project_id: str, subscription_id: str):
         self.project_id = project_id
         self.subscription_id = subscription_id
-        self.timeout = timeout
         self.subscriber = pubsub_v1.SubscriberClient()
         self.subscription_path = self.subscriber.subscription_path(
             self.project_id, self.subscription_id
