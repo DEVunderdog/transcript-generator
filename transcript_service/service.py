@@ -1,4 +1,3 @@
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -23,7 +22,6 @@ class Service:
         sender_email: str,
         sender_password: str,
     ):
-        self._ensure_directories()
 
         self.cloudPubSub = CloudPubSub(
             project_id=project_id, subscription_id=subscription_id
@@ -36,34 +34,6 @@ class Service:
             sender_password=sender_password,
         )
 
-    def _ensure_directories(self):
-        """Safely create required directories with proper error handling."""
-        required_dirs = [
-            constants.temp_dir,
-            constants.resample_file_path,
-            constants.download_file_path,
-            constants.transcript_dir,
-        ]
-
-        for directory in required_dirs:
-            try:
-                os.makedirs(directory, exist_ok=True)
-                # Verify we can write to the directory
-                test_file = os.path.join(directory, ".write_test")
-                try:
-                    with open(test_file, "w") as f:
-                        f.write("test")
-                    os.remove(test_file)
-                except (IOError, OSError) as e:
-                    logger.error(f"Directory {directory} is not writable: {str(e)}")
-                    raise RuntimeError(
-                        f"Directory {directory} is not writable. Please check permissions."
-                    )
-            except PermissionError as e:
-                logger.error(f"Failed to create directory {directory}: {str(e)}")
-                raise RuntimeError(
-                    f"Cannot create directory {directory}. Please check permissions."
-                )
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
