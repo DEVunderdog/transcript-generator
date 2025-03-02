@@ -1,33 +1,33 @@
 basePath: /server
 definitions:
-  server.apiKeyRequest:
+  api.apiKeyRequest:
     properties:
       email:
         type: string
     required:
     - email
     type: object
-  server.apiKeyResponse:
+  api.apiKeyResponse:
     properties:
       api_key:
         type: string
     type: object
-  server.responseData:
+  api.responseData:
     description: Response data structure
     properties:
       data: {}
       status:
         type: integer
     type: object
-  server.standardResponse:
+  api.standardResponse:
     description: Standard response structure
     properties:
       message:
         type: string
       response:
-        $ref: '#/definitions/server.responseData'
+        $ref: '#/definitions/api.responseData'
     type: object
-  server.updateFileRequest:
+  api.updateFileRequest:
     properties:
       file_id:
         type: integer
@@ -37,7 +37,7 @@ definitions:
     - file_id
     - new_file_name
     type: object
-host: localhost:9081
+host: https://transcript-generator-backend-29185933434.asia-south1.run.app
 info:
   contact: {}
   description: API for generating transcript from audio files using OpenAI Whisper
@@ -57,26 +57,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.apiKeyRequest'
+          $ref: '#/definitions/api.apiKeyRequest'
       produces:
       - application/json
       responses:
         "201":
           description: api keys created
           schema:
-            $ref: '#/definitions/server.apiKeyResponse'
+            $ref: '#/definitions/api.apiKeyResponse'
         "400":
           description: invalid request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "403":
           description: user already present
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       summary: Generate API Key
       tags:
       - Authentication
@@ -89,11 +89,11 @@ paths:
         "200":
           description: api key deleted successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Delete API Key
@@ -114,19 +114,19 @@ paths:
         "200":
           description: File deleted successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "404":
           description: File not found
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Delete a file
@@ -141,11 +141,11 @@ paths:
         "200":
           description: file fetched successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: List Files
@@ -160,15 +160,15 @@ paths:
         "200":
           description: Operation Done
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Sync Files
@@ -185,26 +185,26 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/server.updateFileRequest'
+          $ref: '#/definitions/api.updateFileRequest'
       produces:
       - application/json
       responses:
         "200":
           description: File updated successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Update File
@@ -227,19 +227,19 @@ paths:
         "200":
           description: File uploaded successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "409":
           description: Status Conflict
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Upload file to bucket
@@ -263,19 +263,19 @@ paths:
         "200":
           description: Transcript requested successfully
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       security:
       - ApiKeyAuth: []
       summary: Request Transcript
@@ -290,12 +290,12 @@ paths:
         "200":
           description: server status
           schema:
-            $ref: '#/definitions/server.standardResponse'
+            $ref: '#/definitions/api.standardResponse'
       summary: Health Check
       tags:
       - Health
 schemes:
-- http
+- https
 securityDefinitions:
   ApiKeyAuth:
     in: header

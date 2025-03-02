@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.apiKeyRequest"
+                            "$ref": "#/definitions/api.apiKeyRequest"
                         }
                     }
                 ],
@@ -43,25 +43,25 @@ const docTemplate = `{
                     "201": {
                         "description": "api keys created",
                         "schema": {
-                            "$ref": "#/definitions/server.apiKeyResponse"
+                            "$ref": "#/definitions/api.apiKeyResponse"
                         }
                     },
                     "400": {
                         "description": "invalid request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "403": {
                         "description": "user already present",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -86,13 +86,13 @@ const docTemplate = `{
                     "200": {
                         "description": "api key deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -126,25 +126,25 @@ const docTemplate = `{
                     "200": {
                         "description": "File deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "File not found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -169,13 +169,13 @@ const docTemplate = `{
                     "200": {
                         "description": "file fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -200,19 +200,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Operation Done",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -243,7 +243,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.updateFileRequest"
+                            "$ref": "#/definitions/api.updateFileRequest"
                         }
                     }
                 ],
@@ -251,25 +251,25 @@ const docTemplate = `{
                     "200": {
                         "description": "File updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -306,25 +306,25 @@ const docTemplate = `{
                     "200": {
                         "description": "File uploaded successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "409": {
                         "description": "Status Conflict",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -361,25 +361,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Transcript requested successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -399,7 +399,7 @@ const docTemplate = `{
                     "200": {
                         "description": "server status",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -407,7 +407,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "server.apiKeyRequest": {
+        "api.apiKeyRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -418,7 +418,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.apiKeyResponse": {
+        "api.apiKeyResponse": {
             "type": "object",
             "properties": {
                 "api_key": {
@@ -426,7 +426,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.responseData": {
+        "api.responseData": {
             "description": "Response data structure",
             "type": "object",
             "properties": {
@@ -436,7 +436,7 @@ const docTemplate = `{
                 }
             }
         },
-        "server.standardResponse": {
+        "api.standardResponse": {
             "description": "Standard response structure",
             "type": "object",
             "properties": {
@@ -444,11 +444,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "response": {
-                    "$ref": "#/definitions/server.responseData"
+                    "$ref": "#/definitions/api.responseData"
                 }
             }
         },
-        "server.updateFileRequest": {
+        "api.updateFileRequest": {
             "type": "object",
             "required": [
                 "file_id",
@@ -476,9 +476,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:9081",
+	Host:             "https://transcript-generator-backend-29185933434.asia-south1.run.app",
 	BasePath:         "/server",
-	Schemes:          []string{"http"},
+	Schemes:          []string{"https"},
 	Title:            "Transcript Generator API",
 	Description:      "API for generating transcript from audio files using OpenAI Whisper Model, please note that you will receive the transcript.pdf file on your registered email address.",
 	InfoInstanceName: "swagger",

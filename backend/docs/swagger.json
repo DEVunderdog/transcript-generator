@@ -1,6 +1,6 @@
 {
     "schemes": [
-        "http"
+        "https"
     ],
     "swagger": "2.0",
     "info": {
@@ -9,7 +9,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:9081",
+    "host": "https://transcript-generator-backend-29185933434.asia-south1.run.app",
     "basePath": "/server",
     "paths": {
         "/api/register": {
@@ -32,7 +32,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.apiKeyRequest"
+                            "$ref": "#/definitions/api.apiKeyRequest"
                         }
                     }
                 ],
@@ -40,25 +40,25 @@
                     "201": {
                         "description": "api keys created",
                         "schema": {
-                            "$ref": "#/definitions/server.apiKeyResponse"
+                            "$ref": "#/definitions/api.apiKeyResponse"
                         }
                     },
                     "400": {
                         "description": "invalid request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "403": {
                         "description": "user already present",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -83,13 +83,13 @@
                     "200": {
                         "description": "api key deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -123,25 +123,25 @@
                     "200": {
                         "description": "File deleted successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "File not found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -166,13 +166,13 @@
                     "200": {
                         "description": "file fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -197,19 +197,19 @@
                     "200": {
                         "description": "Operation Done",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -240,7 +240,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/server.updateFileRequest"
+                            "$ref": "#/definitions/api.updateFileRequest"
                         }
                     }
                 ],
@@ -248,25 +248,25 @@
                     "200": {
                         "description": "File updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -303,25 +303,25 @@
                     "200": {
                         "description": "File uploaded successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "409": {
                         "description": "Status Conflict",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -358,25 +358,25 @@
                     "200": {
                         "description": "Transcript requested successfully",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -396,7 +396,7 @@
                     "200": {
                         "description": "server status",
                         "schema": {
-                            "$ref": "#/definitions/server.standardResponse"
+                            "$ref": "#/definitions/api.standardResponse"
                         }
                     }
                 }
@@ -404,7 +404,7 @@
         }
     },
     "definitions": {
-        "server.apiKeyRequest": {
+        "api.apiKeyRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -415,7 +415,7 @@
                 }
             }
         },
-        "server.apiKeyResponse": {
+        "api.apiKeyResponse": {
             "type": "object",
             "properties": {
                 "api_key": {
@@ -423,7 +423,7 @@
                 }
             }
         },
-        "server.responseData": {
+        "api.responseData": {
             "description": "Response data structure",
             "type": "object",
             "properties": {
@@ -433,7 +433,7 @@
                 }
             }
         },
-        "server.standardResponse": {
+        "api.standardResponse": {
             "description": "Standard response structure",
             "type": "object",
             "properties": {
@@ -441,11 +441,11 @@
                     "type": "string"
                 },
                 "response": {
-                    "$ref": "#/definitions/server.responseData"
+                    "$ref": "#/definitions/api.responseData"
                 }
             }
         },
-        "server.updateFileRequest": {
+        "api.updateFileRequest": {
             "type": "object",
             "required": [
                 "file_id",

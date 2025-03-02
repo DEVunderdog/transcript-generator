@@ -91,7 +91,8 @@ jobs:
             --vpc-egress=all-traffic
             --vpc-connector=${{secrets.VPC_CONNECTOR}}
             --no-allow-unauthenticated
-            --ingress=internal
+            --no-cpu-throttling
+            --min-instances=1
 
       - name: bind pub/sub to transcript core service
         run: |-
