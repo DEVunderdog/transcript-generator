@@ -37,7 +37,7 @@ definitions:
     - file_id
     - new_file_name
     type: object
-host: https://transcript-generator-backend-29185933434.asia-south1.run.app
+host: transcript-generator-backend-29185933434.asia-south1.run.app
 info:
   contact: {}
   description: API for generating transcript from audio files using OpenAI Whisper

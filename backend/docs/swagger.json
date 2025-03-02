@@ -9,7 +9,7 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "https://transcript-generator-backend-29185933434.asia-south1.run.app",
+    "host": "transcript-generator-backend-29185933434.asia-south1.run.app",
     "basePath": "/server",
     "paths": {
         "/api/register": {

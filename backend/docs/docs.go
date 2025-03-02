@@ -476,7 +476,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "https://transcript-generator-backend-29185933434.asia-south1.run.app",
+	Host:             "transcript-generator-backend-29185933434.asia-south1.run.app",
 	BasePath:         "/server",
 	Schemes:          []string{"https"},
 	Title:            "Transcript Generator API",
