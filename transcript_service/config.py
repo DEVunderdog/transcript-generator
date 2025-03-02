@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     subscription_id: str
     sender_email: str
     sender_password: str
+    server_port: int
 
 
 settings = Settings()

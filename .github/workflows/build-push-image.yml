@@ -85,7 +85,9 @@ jobs:
             SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
             SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
             SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
+            SERVER_PORT=8080
           flags: |
+            --port=8080
             --min-instances=0
             --memory=512Mi
             --vpc-egress=all-traffic

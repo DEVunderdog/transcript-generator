@@ -1,8 +1,11 @@
 import signal
+import threading
 
 from config import settings
 from logger import logger
 from service import Service
+from http.server import HTTPServer
+from server import HealthCheckHandler
 
 if __name__ == "__main__":
     execute_service = Service(
@@ -17,8 +20,13 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, execute_service.signal_handler)
 
     try:
+        server = HTTPServer(('', settings.server_port), HealthCheckHandler)
+        thread = threading.Thread(target=server.serve_forever)
+        thread.daemon = True
+        thread.start()
+        print(f"health check server started on port {settings.server_port}")
         execute_service.run_service()
     except Exception as e:
         logger.info(f"error occurred: {e}")
-    finally:
+    # finally:
         execute_service.cleanup()
