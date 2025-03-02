@@ -18,9 +18,9 @@ import (
 // @title Transcript Generator API
 // @version 1.0
 // @description API for generating transcript from audio files using OpenAI Whisper Model, please note that you will receive the transcript.pdf file on your registered email address.
-// @host localhost:9081
+// @host https://transcript-generator-backend-29185933434.asia-south1.run.app
 // @BasePath /server
-// @schemes http
+// @schemes https
 // @securityDefinitions.apiKey ApiKeyAuth
 // @in header
 // @name Authorization
