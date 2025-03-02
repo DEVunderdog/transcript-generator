@@ -104,3 +104,4 @@ jobs:
             --event-filters="type=google.cloud.pubsub.topic.v1.messagePublished" \
             --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }} \
             --transport-topic=${{secrets.TOPIC_ID}}
+            --location=${{ secrets.GCP_REGION }}
