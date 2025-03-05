@@ -152,7 +152,7 @@ paths:
       tags:
       - Files
   /auth/files/sync:
-    post:
+    get:
       description: Sync files if locked
       produces:
       - application/json

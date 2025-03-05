@@ -182,7 +182,7 @@ const docTemplate = `{
             }
         },
         "/auth/files/sync": {
-            "post": {
+            "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
