@@ -1,20 +1,43 @@
-# Some Changes
 name: Build and Push Docker Image to GCP Artifact Registry
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'transcript_service/**'
 
 jobs:
-  build-and-push:
+  setup:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    outputs:
+      backend_changed: ${{ steps.changes.outputs.backend }}
+      transcript_changed: ${{ steps.changes.outputs.transcript_service }}
+    steps:
+      - name: code checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: detect changes
+        id: changes
+        run: |
+          echo "backend=$(git diff --name-only HEAD^ HEAD | grep ^backend/ && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "transcript_service=$(git diff --name-only HEAD^ HEAD | grep ^transcript_service/ && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+  
+  backend:
+    needs: setup
+    if: needs.setup.outputs.backend_changed == 'true'
     permissions:
       contents: read
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - name: code checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: google auth
         id: auth
@@ -24,78 +47,101 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
+          
       - name: docker auth
-        id: docker-auth
         uses: "docker/login-action@v3"
         with:
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
-          registry: ${{ secrets.GCP_REPO_LOCATION}}-docker.pkg.dev
+          registry: ${{ secrets.GCP_REPO_LOCATION }}-docker.pkg.dev
 
       - name: build and push backend container
         run: |-
-          docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f  backend/docker/Dockerfile.backend ./backend
+          docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f backend/docker/Dockerfile.backend ./backend
           docker push ${{ secrets.GCP_REPO_URL }}/backend:latest
+      
+          - name: deploy backend to cloud run
+          uses: google-github-actions/deploy-cloudrun@v2
+          with:
+            service: transcript-generator-backend
+            region: ${{ secrets.GCP_REGION }}
+            image: ${{ secrets.GCP_REPO_URL }}/backend:latest
+            env_vars: |-
+              SERVER_PORT=8080
+              DB_SOURCE=${{secrets.DB_SOURCE}}
+              PASSPHRASE=${{secrets.PASSPHRASE}}
+              AUDIENCE=${{secrets.AUDIENCE}}
+              ISSUER=${{secrets.ISSUER}}
+              BUCKET_NAME=${{secrets.BUCKET_NAME}}
+              TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
+              TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
+              KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
+              TOPIC_ID=${{secrets.TOPIC_ID}}
+              PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
+            flags: |
+              --port=8080
+              --min-instances=0
+              --memory=512Mi
+              --cpu=1
+              --allow-unauthenticated
+              --vpc-egress=all-traffic
+              --vpc-connector=${{secrets.VPC_CONNECTOR}}
+              --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
+
+  transcript-service:
+    needs: setup
+    if: needs.setup.outputs.transcript_changed == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: google auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+        
+      - name: docker auth
+        uses: "docker/login-action@v3"
+        with:
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+          registry: ${{ secrets.GCP_REPO_LOCATION }}-docker.pkg.dev
 
       - name: build and push transcript service container
         run: |-
           docker build -t ${{ secrets.GCP_REPO_URL }}/transcript-service:latest -f transcript_service/docker/Dockerfile.transcript_service ./transcript_service
           docker push ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
 
-      - name: deploy backend to cloud run
-        id: deploy-backend
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: transcript-generator-backend
-          region: ${{ secrets.GCP_REGION }}
-          image: ${{ secrets.GCP_REPO_URL }}/backend:latest
-          env_vars: |-
-            SERVER_PORT=8080
-            DB_SOURCE=${{secrets.DB_SOURCE}}
-            PASSPHRASE=${{secrets.PASSPHRASE}}
-            AUDIENCE=${{secrets.AUDIENCE}}
-            ISSUER=${{secrets.ISSUER}}
-            BUCKET_NAME=${{secrets.BUCKET_NAME}}
-            TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
-            TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
-            KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
-            TOPIC_ID=${{secrets.TOPIC_ID}}
-            PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
-          flags: |
-            --port=8080
-            --min-instances=0
-            --memory=512Mi
-            --cpu=1
-            --allow-unauthenticated
-            --vpc-egress=all-traffic
-            --vpc-connector=${{secrets.VPC_CONNECTOR}}
-            --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
-
-      - name: deploy transcript service to cloud run
-        id: deploy-transcript-service
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: transcript-generator-core-service
-          region: ${{ secrets.GCP_REGION }}
-          image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
-          env_vars: |-
-            BUCKET_NAME=${{ secrets.BUCKET_NAME }}
-            PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
-            SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
-            SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
-            SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
-            SERVER_PORT=8080
-          flags: |
-            --port=8080
-            --min-instances=0
-            --memory=512Mi
-            --vpc-egress=all-traffic
-            --vpc-connector=${{secrets.VPC_CONNECTOR}}
-            --no-allow-unauthenticated
-            --no-cpu-throttling
-            --min-instances=1
-
+          - name: deploy transcript service to cloud run
+          uses: google-github-actions/deploy-cloudrun@v2
+          with:
+            service: transcript-generator-core-service
+            region: ${{ secrets.GCP_REGION }}
+            image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
+            env_vars: |-
+              BUCKET_NAME=${{ secrets.BUCKET_NAME }}
+              PROJECT_ID=${{ secrets.GCP_PROJECT_ID }}
+              SUBSCRIPTION_ID=${{ secrets.SUBSCRIPTION_ID }}
+              SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
+              SENDER_PASSWORD=${{ secrets.SENDER_PASSWORD }}
+              SERVER_PORT=8080
+            flags: |
+              --port=8080
+              --min-instances=0
+              --memory=512Mi
+              --vpc-egress=all-traffic
+              --vpc-connector=${{secrets.VPC_CONNECTOR}}
+              --no-allow-unauthenticated
+              --no-cpu-throttling
+              --min-instances=1
+  
       - name: bind pub/sub to transcript core service
         run: |-
           gcloud eventarc triggers create transcript-trigger \
@@ -105,3 +151,4 @@ jobs:
             --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }} \
             --transport-topic=${{secrets.TOPIC_ID}} \
             --location=${{ secrets.GCP_REGION }}
+  

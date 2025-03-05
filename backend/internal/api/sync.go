@@ -25,7 +25,7 @@ type matchResult struct {
 // @Success 200 {object} standardResponse "Operation Done"
 // @Failure 400 {object} standardResponse "Bad Request"
 // @Failure 500 {object} standardResponse "Internal Server Error"
-// @Router /auth/files/sync [POST]
+// @Router /auth/files/sync [GET]
 func (server *Server) sync(ctx *gin.Context) {
 
 	listOfFilesInBucket := make(map[string]struct{})
