@@ -26,9 +26,9 @@ jobs:
       - name: detect changes
         id: changes
         run: |
-          echo "backend=$(git diff --name-only HEAD^ HEAD | grep ^backend/ && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-          echo "transcript_service=$(git diff --name-only HEAD^ HEAD | grep ^transcript_service/ && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
-  
+          echo "backend=$(if git diff --name-only HEAD^ HEAD | grep -q '^backend/'; then echo 'true'; else echo 'false'; fi)" >> "$GITHUB_OUTPUT"
+          echo "transcript_service=$(if git diff --name-only HEAD^ HEAD | grep -q '^transcript_service/'; then echo 'true'; else echo 'false'; fi)" >> "$GITHUB_OUTPUT"
+
   backend:
     needs: setup
     if: needs.setup.outputs.backend_changed == 'true'
