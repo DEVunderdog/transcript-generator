@@ -60,34 +60,34 @@ jobs:
           docker build -t ${{ secrets.GCP_REPO_URL }}/backend:latest -f backend/docker/Dockerfile.backend ./backend
           docker push ${{ secrets.GCP_REPO_URL }}/backend:latest
       
-          - name: deploy backend to cloud run
-          uses: google-github-actions/deploy-cloudrun@v2
-          with:
-            service: transcript-generator-backend
-            region: ${{ secrets.GCP_REGION }}
-            image: ${{ secrets.GCP_REPO_URL }}/backend:latest
-            env_vars: |-
-              SERVER_PORT=8080
-              DB_SOURCE=${{secrets.DB_SOURCE}}
-              PASSPHRASE=${{secrets.PASSPHRASE}}
-              AUDIENCE=${{secrets.AUDIENCE}}
-              ISSUER=${{secrets.ISSUER}}
-              BUCKET_NAME=${{secrets.BUCKET_NAME}}
-              TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
-              TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
-              KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
-              TOPIC_ID=${{secrets.TOPIC_ID}}
-              PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
-            flags: |
-              --port=8080
-              --min-instances=0
-              --memory=512Mi
-              --cpu=1
-              --allow-unauthenticated
-              --vpc-egress=all-traffic
-              --vpc-connector=${{secrets.VPC_CONNECTOR}}
-              --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
-
+      - name: deploy backend to cloud run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: transcript-generator-backend
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ secrets.GCP_REPO_URL }}/backend:latest
+          env_vars: |-
+            SERVER_PORT=8080
+            DB_SOURCE=${{secrets.DB_SOURCE}}
+            PASSPHRASE=${{secrets.PASSPHRASE}}
+            AUDIENCE=${{secrets.AUDIENCE}}
+            ISSUER=${{secrets.ISSUER}}
+            BUCKET_NAME=${{secrets.BUCKET_NAME}}
+            TOKEN_TYPE=${{secrets.TOKEN_TYPE}}
+            TOKEN_DURATION=${{secrets.TOKEN_DURATION}}
+            KEYS_PURPOSE=${{secrets.KEYS_PURPOSE}}
+            TOPIC_ID=${{secrets.TOPIC_ID}}
+            PROJECT_ID=${{secrets.GCP_PROJECT_ID}}
+          flags: |
+            --port=8080
+            --min-instances=0
+            --memory=512Mi
+            --cpu=1
+            --allow-unauthenticated
+            --vpc-egress=all-traffic
+            --vpc-connector=${{secrets.VPC_CONNECTOR}}
+            --add-cloudsql-instances=${{secrets.CLOUD_INSTANCE}}
+          
   transcript-service:
     needs: setup
     if: needs.setup.outputs.transcript_changed == 'true'
