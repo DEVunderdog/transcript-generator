@@ -135,7 +135,7 @@ jobs:
           flags: |
             --port=8080
             --min-instances=0
-            --memory=4GiB
+            --memory=4Gi
             --cpu=2
             --vpc-egress=all-traffic
             --vpc-connector=${{secrets.VPC_CONNECTOR}}

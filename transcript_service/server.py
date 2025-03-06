@@ -8,5 +8,3 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.wfile.write(b'OK')
 
 
-
-# removed binding
