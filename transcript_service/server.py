@@ -9,3 +9,4 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
 
 
+# removed binding
