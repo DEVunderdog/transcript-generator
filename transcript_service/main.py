@@ -28,5 +28,5 @@ if __name__ == "__main__":
         execute_service.run_service()
     except Exception as e:
         logger.info(f"error occurred: {e}")
-    # finally:
+    finally:
         execute_service.cleanup()
