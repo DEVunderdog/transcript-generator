@@ -1,5 +1,6 @@
 import signal
 import threading
+import sys
 
 from config import settings
 from logger import logger
@@ -28,5 +29,8 @@ if __name__ == "__main__":
         execute_service.run_service()
     except Exception as e:
         logger.info(f"error occurred: {e}")
+        execute_service.cleanup()
+        sys.exit(1)
     finally:
         execute_service.cleanup()
+        sys.exit(0)
