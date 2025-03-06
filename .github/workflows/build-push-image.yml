@@ -144,10 +144,14 @@ jobs:
 
       - name: bind pub/sub to transcript core service
         run: |-
-          gcloud eventarc triggers create transcript-trigger \
-            --destination-run-service=transcript-generator-core-service \
-            --destination-run-region=${{ secrets.GCP_REGION }} \
-            --event-filters="type=google.cloud.pubsub.topic.v1.messagePublished" \
-            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }} \
-            --transport-topic=${{secrets.TOPIC_ID}} \
-            --location=${{ secrets.GCP_REGION }}
+          if ! gcloud eventarc triggers describe transcript-trigger --location=${{ secrets.GCP_REGION }} > /dev/null 2>&1; then
+            gcloud eventarc triggers create transcript-trigger \
+              --destination-run-service=transcript-generator-core-service \
+              --destination-run-region=${{ secrets.GCP_REGION }} \
+              --event-filters="type=google.cloud.pubsub.topic.v1.messagePublished" \
+              --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }} \
+              --transport-topic=${{secrets.TOPIC_ID}} \
+              --location=${{ secrets.GCP_REGION }}
+          else
+            echo "Eventarc trigger 'transcript-trigger' already exists. Skipping creation."
+          fi
