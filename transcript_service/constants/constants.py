@@ -1,4 +1,4 @@
 temp_dir = "./temp"
-resample_file_path = "./temp/audio"
-download_file_path = "./temp/download"
-transcript_dir = "./temp/pdf"
+resample_file_path = "./temp/audios"
+download_file_path = "./temp/downloads"
+transcript_dir = "./temp/transcripts"

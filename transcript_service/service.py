@@ -72,10 +72,12 @@ class Service:
         temp_dir = Path(constants.temp_dir)
 
         for item in temp_dir.iterdir():
-            if item.is_dir():
-                shutil.rmtree(item)
-            else:
+            if item.is_file():
                 item.unlink()
+            elif item.is_dir():
+                for sub_item in item.iterdir():
+                    if sub_item.is_file():
+                        sub_item.unlink()
 
     def signal_handler(self, sig, frame):
         logger.info("termination signal received cleaning up...")
