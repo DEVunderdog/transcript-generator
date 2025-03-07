@@ -122,7 +122,7 @@ jobs:
       - name: deploy transcript service to cloud run
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: transcript-generator-core-service
+          service: transcript-service
           region: ${{ secrets.GCP_REGION }}
           image: ${{ secrets.GCP_REPO_URL }}/transcript-service:latest
           env_vars: |-
