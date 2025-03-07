@@ -137,7 +137,5 @@ jobs:
             --min-instances=0
             --memory=4Gi
             --cpu=2
-            --vpc-egress=all-traffic
-            --vpc-connector=${{secrets.VPC_CONNECTOR}}
             --no-allow-unauthenticated
             --no-cpu-throttling
