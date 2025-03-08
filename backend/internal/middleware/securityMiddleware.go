@@ -15,41 +15,30 @@ func SecurityHeaderMiddleware() gin.HandlerFunc {
 		ctx.Writer.Header().Set("Permissions-Policy", "geolocation=(), camera=(), microphone=()")
 		ctx.Writer.Header().Set("X-Permitted-Cross-Domain-Policies", "none")
 
-		// Headers that depend on the environment and path
 		isSwaggerPath := strings.HasPrefix(ctx.Request.URL.Path, "/swagger/")
 		isDevMode := gin.Mode() != gin.ReleaseMode
 
-		// CSP header - relaxed for Swagger UI, strict for everything else
 		if isSwaggerPath {
-			// Relaxed CSP for Swagger UI
 			ctx.Writer.Header().Set("Content-Security-Policy",
 				"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';")
-
-			// Also relax CORS policies for Swagger as needed
 			ctx.Writer.Header().Set("Cross-Origin-Embedder-Policy", "unsafe-none")
 			ctx.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
 			ctx.Writer.Header().Set("Cross-Origin-Resource-Policy", "cross-origin")
 		} else {
-			// Strict CSP for all other paths
 			ctx.Writer.Header().Set("Content-Security-Policy",
 				"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self';")
-
-			// Strict CORS policies for regular paths
 			ctx.Writer.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 			ctx.Writer.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 			ctx.Writer.Header().Set("Cross-Origin-Resource-Policy", "same-origin")
 		}
 
-		// HSTS - only in production
 		if !isDevMode {
 			ctx.Writer.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		}
 
-		// Remove potentially revealing headers
 		ctx.Writer.Header().Del("Server")
 		ctx.Writer.Header().Del("X-Powered-By")
 
-		// HTTPS redirect in production
 		if ctx.Request.Header.Get("X-Forwarded-Proto") != "https" && gin.Mode() == gin.ReleaseMode {
 			ctx.Redirect(http.StatusPermanentRedirect, "https://"+ctx.Request.Host+ctx.Request.RequestURI)
 			ctx.Abort()

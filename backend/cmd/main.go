@@ -11,6 +11,7 @@ import (
 	database "github.com/DEVunderdog/transcript-generator-backend/internal/database/sqlc"
 	"github.com/DEVunderdog/transcript-generator-backend/internal/logger"
 	"github.com/DEVunderdog/transcript-generator-backend/internal/utils"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -25,6 +26,8 @@ import (
 // @in header
 // @name Authorization
 func main() {
+	gin.SetMode(gin.ReleaseMode)
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

@@ -1,4 +1,5 @@
 import sys
+import shutil
 from pathlib import Path
 
 from audio_model.audio_model import ASRModel
@@ -21,7 +22,6 @@ class Service:
         sender_email: str,
         sender_password: str,
     ):
-
         self.cloudPubSub = CloudPubSub(
             project_id=project_id, subscription_id=subscription_id
         )
@@ -33,6 +33,18 @@ class Service:
             sender_password=sender_password,
         )
 
+    def cleanup(self):
+        temp_dir = Path(constants.temp_dir)
+
+        for item in temp_dir.iterdir():
+            if item.is_file():
+                item.unlink()
+            elif item.is_dir():
+                for sub_item in item.iterdir():
+                    if sub_item.is_file():
+                        sub_item.unlink()
+                    elif sub_item.is_dir():
+                        shutil.rmtree(sub_item)
 
     def custom_callback(self, message: pubsub_v1.subscriber.message.Message):
         try:
@@ -60,23 +72,15 @@ class Service:
 
             logger.info("mail sent successfully")
 
+            self.cleanup()
+            logger.info("cleanup up is done successfully")
+
         except Exception as e:
             logger.error(f"error parsing the message {str(e)}")
             message.nack()
 
     def run_service(self):
         self.cloudPubSub.start_listening(callback=self.custom_callback)
-
-    def cleanup(self):
-        temp_dir = Path(constants.temp_dir)
-
-        for item in temp_dir.iterdir():
-            if item.is_file():
-                item.unlink()
-            elif item.is_dir():
-                for sub_item in item.iterdir():
-                    if sub_item.is_file():
-                        sub_item.unlink()
 
     def signal_handler(self, sig, frame):
         logger.info("termination signal received cleaning up...")
