@@ -1,11 +1,10 @@
-# How GCP cloud services are leverage
-![image](https://github.com/user-attachments/assets/bccc90f7-47d6-4091-8a51-6232872be041)
+You can try out the API using Swagger UI
+[transcript-generator-api] https://transcript-generator-backend-29185933434.asia-south1.run.app/swagger/index.html
 
-- I wanted to independent services as backend as a service and transcript-service as a service.
-- Clients could directly interact with backend which is Public API to generate transcript. 
-- And GCP Pub/Sub is how we try to maintain communication between two decoupled services.
-- Now We have ran a Cloud SQL instance of Postgres version 16 on GCP, which would interact with backend service which is hosted on cloud run over private network.
-- The database isn't exposed publicly, hence on VPC but our backend service which is accessible over internet needed a  way to communicate internally to the database, hence we had a VPC connector on that Cloud Run,
-  so that via private routing of traffic they could maintain connection.
-- Another fascinated thing about transcript_service which is that its been isolated, not hosted over internet and has VPC connector for its communication internally.
-- And we explicitly connect Pub/Sub message listening capabilities to it. 
+To understand system design of application please check out the blog I have written about it:
+[system of transcript generator]https://transcript-generator.hashnode.dev/transcript-generator
+
+Please note that to save up my cloud billing you can't use the API service, but if you wanted to try it out please let me know by emailing me at farhankhoja098@gmail.com and I will start the SQL Instance and you can try it out.
+
+Thanks :)
+
